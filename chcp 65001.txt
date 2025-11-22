@@ -1,0 +1,2 @@
+chcp 65001
+dotnet build > C:\temp\build.txt 2>&1

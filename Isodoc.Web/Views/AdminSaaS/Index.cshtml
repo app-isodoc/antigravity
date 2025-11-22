@@ -1,0 +1,134 @@
+@{
+    Layout = "_LayoutAdminSaaS";
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="mb-4">
+    <a href="#" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left"></i> Voltar ao Painel de Controle</a>
+    <h2 class="mt-2">Painel Administrativo do SaaS</h2>
+</div>
+
+<!-- Cards de Métricas -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="text-muted mb-0">Clientes Totais</h6>
+                    <i class="bi bi-people text-primary"></i>
+                </div>
+                <h3 class="mb-1">2</h3>
+                <small class="text-muted">Total de clientes cadastrados</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="text-muted mb-0">Assinaturas Ativas</h6>
+                    <i class="bi bi-check-circle text-success"></i>
+                </div>
+                <h3 class="mb-1">0</h3>
+                <small class="text-muted">0% de conversão</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="text-muted mb-0">Receita Mensal</h6>
+                    <i class="bi bi-graph-up text-info"></i>
+                </div>
+                <h3 class="mb-1">R$ 0.00</h3>
+                <small class="text-muted">Receita recorrente mensal</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="text-muted mb-0">Usuários em Teste</h6>
+                    <i class="bi bi-clock-history text-warning"></i>
+                </div>
+                <h3 class="mb-1">0</h3>
+                <small class="text-muted">Clientes em período de teste</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Receita Mensal</h5>
+                <p class="text-muted small">Faturamento nos últimos 6 meses</p>
+                <div class="d-flex justify-content-center align-items-center" style="height: 250px; background-color: #f8f9fa; border-radius: 10px;">
+                    <div class="text-center text-muted">
+                        <i class="bi bi-graph-up fs-1"></i>
+                        <p class="mt-2">Gráfico de receita mensal</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Distribuição de Planos</h5>
+                <p class="text-muted small">Assinantes por plano</p>
+                <div class="d-flex justify-content-center align-items-center" style="height: 250px; background-color: #f8f9fa; border-radius: 10px;">
+                    <div class="text-center text-muted">
+                        <i class="bi bi-pie-chart fs-1"></i>
+                        <p class="mt-2">Gráfico de distribuição por plano</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clientes Recentes -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Clientes Recentes</h5>
+        <p class="text-muted small mb-4">Últimos clientes cadastrados na plataforma</p>
+        
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Empresa</th>
+                        <th>Plano</th>
+                        <th>Status</th>
+                        <th>Data Cadastro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar bg-primary text-white me-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">ED</div>
+                                <div>
+                                    <div class="fw-bold">Empresa Demo Ltda</div>
+                                    <div class="small text-muted">00.000.000/0001-00</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-info text-dark">Enterprise</span></td>
+                        <td><span class="badge bg-success">Ativo</span></td>
+                        <td>@DateTime.Now.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

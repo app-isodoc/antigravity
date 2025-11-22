@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Isodoc</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Isodoc.Web.styles.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+@*
+@inject Isodoc.Web.Services.ICurrentTenantService TenantService
+@inject Isodoc.Web.Data.ApplicationDbContext DbContext
+@{
+    var clientName = "";
+    if (TenantService.ClientId != null)
+    {
+        var client = await DbContext.Clients.FindAsync(TenantService.ClientId.Value);
+        clientName = client?.NomeFantasia ?? "";
+    }
+}
+*@
+@{
+    // garante que clientName exista sempre e evita código assíncrono aqui
+    var clientName = ViewBag.ClientName as string ?? (User?.Identity?.Name ?? "");
+}
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 260px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding-top: 20px;
+            transition: all 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        .sidebar-brand {
+            padding: 0 20px 15px;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .sidebar-brand-company {
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.7);
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar.collapsed .sidebar-brand {
+            text-align: center;
+            padding: 0 10px 20px;
+        }
+        .sidebar.collapsed .brand-text {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-brand-company {
+            display: none;
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar-menu-item {
+            margin: 5px 10px;
+        }
+        .sidebar-menu-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .sidebar-menu-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .sidebar-menu-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .sidebar-menu-icon {
+            font-size: 20px;
+            min-width: 30px;
+        }
+        .sidebar.collapsed .sidebar-menu-text {
+            display: none;
+        }
+        .main-content {
+            margin-left: 260px;
+            transition: all 0.3s;
+        }
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+        .top-navbar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        .notification-bell {
+            position: relative;
+            font-size: 20px;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .suspended-banner {
+            background-color: #dc3545;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 2000;
+            font-weight: bold;
+        }
+        body.suspended-mode .sidebar {
+            top: 44px; /* Altura aproximada do banner */
+            height: calc(100vh - 44px);
+        }
+        body.suspended-mode .main-content {
+            margin-top: 44px;
+        }
+    </style>
+</head>
+<body class="">
+    
+    @*
+    @if (TenantService.ClientStatus == "Suspenso")
+    {
+        <div class="suspended-banner">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            ATENÇÃO: Sua conta está suspensa. Por favor, entre em contato com o administrador do sistema para regularizar sua situação.
+        </div>
+    }
+    *@
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-shield-check"></i>
+            <span class="brand-text ms-2">ISODOC</span>
+            @{
+                var _clientName = ViewBag.ClientName as string ?? (User?.Identity?.Name ?? "");
+            }
+            @if (!string.IsNullOrEmpty(_clientName))
+            {
+                <div class="sidebar-brand-company">@_clientName</div>
+            }
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-menu-item">
+                <a href="@Url.Action("Index", "Home")" class="sidebar-menu-link">
+                    <i class="bi bi-speedometer2 sidebar-menu-icon"></i>
+                    <span class="sidebar-menu-text ms-2">Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="@Url.Action("Index", "Documents")" class="sidebar-menu-link">
+                    <i class="bi bi-file-text sidebar-menu-icon"></i>
+                    <span class="sidebar-menu-text ms-2">Documentos</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="@Url.Action("Index", "NonConformities")" class="sidebar-menu-link">
+                    <i class="bi bi-exclamation-triangle sidebar-menu-icon"></i>
+                    <span class="sidebar-menu-text ms-2">Não Conformidades</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="@Url.Action("Index", "Indicators")" class="sidebar-menu-link">
+                    <i class="bi bi-graph-up sidebar-menu-icon"></i>
+                    <span class="sidebar-menu-text ms-2">Indicadores</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="@Url.Action("Index", "Audits")" class="sidebar-menu-link">
+                    <i class="bi bi-clipboard-check sidebar-menu-icon"></i>
+                    <span class="sidebar-menu-text ms-2">Auditorias</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="@Url.Action("Index", "Users")" class="sidebar-menu-link">
+                    <i class="bi bi-people sidebar-menu-icon"></i>
+                    <span class="sidebar-menu-text ms-2">Usuários e Permissões</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Navbar -->
+        <div class="top-navbar">
+            <button class="toggle-sidebar" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="d-flex align-items-center gap-3">
+                <div class="notification-bell">
+                    <i class="bi bi-bell"></i>
+                    <span class="notification-badge">3</span>
+                </div>
+                <partial name="_LoginPartial" />
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="container-fluid p-4">
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        }
+
+        // Highlight active menu item
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const menuLinks = document.querySelectorAll('.sidebar-menu-link');
+            menuLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

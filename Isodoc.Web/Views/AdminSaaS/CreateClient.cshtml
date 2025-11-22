@@ -1,0 +1,213 @@
+@model Isodoc.Web.Models.ClientCreateViewModel
+@{
+    Layout = "_LayoutAdminSaaS";
+    ViewData["Title"] = "Novo Cliente";
+}
+
+<div class="mb-4">
+    <a asp-action="Clients" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left"></i> Voltar para Lista de Clientes</a>
+    <h2 class="mt-2">Novo Cliente</h2>
+    <p class="text-muted">Cadastre um novo cliente na plataforma</p>
+</div>
+
+<form asp-action="CreateClient" method="post" id="clientForm">
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+    <!-- Dados da Empresa -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 text-primary"><i class="bi bi-building me-2"></i>Dados da Empresa</h5>
+            <small class="text-muted">Informações básicas da empresa</small>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="RazaoSocial" class="form-label">Razão Social *</label>
+                    <input asp-for="RazaoSocial" class="form-control" placeholder="Razão social da empresa" />
+                    <span asp-validation-for="RazaoSocial" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="NomeFantasia" class="form-label">Nome Fantasia *</label>
+                    <input asp-for="NomeFantasia" class="form-control" placeholder="Nome fantasia" />
+                    <span asp-validation-for="NomeFantasia" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="CNPJ" class="form-label">CNPJ *</label>
+                    <input asp-for="CNPJ" class="form-control" placeholder="00.000.000/0000-00" />
+                    <span asp-validation-for="CNPJ" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="UrlPersonalizada" class="form-label">URL Personalizada *</label>
+                    <div class="input-group">
+                        <span class="input-group-text">isodoc.com.br/</span>
+                        <input asp-for="UrlPersonalizada" class="form-control" placeholder="nome-da-empresa" oninput="updateUrlPreview(this.value)" />
+                    </div>
+                    <div class="form-text mt-1">URL completa: <span id="urlPreview" class="fw-bold">isodoc.com.br/</span></div>
+                    <span asp-validation-for="UrlPersonalizada" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Endereço -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 text-primary"><i class="bi bi-geo-alt me-2"></i>Endereço</h5>
+            <small class="text-muted">Endereço completo da empresa</small>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-2">
+                    <label asp-for="CEP" class="form-label">CEP</label>
+                    <input asp-for="CEP" class="form-control" placeholder="00000-000" />
+                </div>
+                <div class="col-md-8">
+                    <label asp-for="Logradouro" class="form-label">Logradouro</label>
+                    <input asp-for="Logradouro" class="form-control" placeholder="Rua, Avenida, etc." />
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="Numero" class="form-label">Número</label>
+                    <input asp-for="Numero" class="form-control" placeholder="123" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label asp-for="Complemento" class="form-label">Complemento</label>
+                    <input asp-for="Complemento" class="form-control" placeholder="Sala, Andar, etc." />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Bairro" class="form-label">Bairro</label>
+                    <input asp-for="Bairro" class="form-control" placeholder="Bairro" />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Cidade" class="form-label">Cidade</label>
+                    <input asp-for="Cidade" class="form-control" placeholder="Cidade" />
+                </div>
+                <div class="col-md-1">
+                    <label asp-for="Estado" class="form-label">UF</label>
+                    <input asp-for="Estado" class="form-control" placeholder="SP" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contatos -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0 text-primary"><i class="bi bi-people me-2"></i>Contatos</h5>
+                <small class="text-muted">O primeiro contato será o <strong>Usuário Master</strong> e receberá as credenciais.</small>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddContact">
+                <i class="bi bi-plus-lg"></i> Adicionar Contato
+            </button>
+        </div>
+        <div class="card-body" id="contactsContainer">
+            @for (int i = 0; i < Model.Contatos.Count; i++)
+            {
+                <div class="contact-item border rounded p-3 mb-3 @(i == 0 ? "bg-light" : "") position-relative" id="contact_@i">
+                    @if (i > 0)
+                    {
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close" onclick="removeContact(@i)"></button>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Master</span>
+                    }
+                    
+                    <h6 class="mb-3">@(i == 0 ? "Contato Principal (Master)" : "Contato Adicional")</h6>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Nome *</label>
+                            <input asp-for="Contatos[i].Nome" class="form-control form-control-sm" />
+                            <span asp-validation-for="Contatos[i].Nome" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Cargo</label>
+                            <input asp-for="Contatos[i].Cargo" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label small">Email *</label>
+                            <input asp-for="Contatos[i].Email" class="form-control form-control-sm" />
+                            <span asp-validation-for="Contatos[i].Email" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Telefone</label>
+                            <input asp-for="Contatos[i].Telefone" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+                    <input type="hidden" asp-for="Contatos[i].IsMaster" />
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Financeiro e Controle removido temporariamente -->
+
+    <div class="d-flex justify-content-end gap-2 mb-5">
+        <a asp-action="Clients" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-success px-4"><i class="bi bi-check-lg me-2"></i>Cadastrar Cliente</button>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Preview URL
+        function updateUrlPreview(val) {
+            const preview = document.getElementById('urlPreview');
+            if(val) {
+                preview.textContent = 'isodoc.com.br/' + val.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+            } else {
+                preview.textContent = 'isodoc.com.br/';
+            }
+        }
+
+        // Dynamic Contacts
+        let contactIndex = @Model.Contatos.Count;
+        
+        document.getElementById('btnAddContact').addEventListener('click', function() {
+            const container = document.getElementById('contactsContainer');
+            const html = `
+                <div class="contact-item border rounded p-3 mb-3 position-relative" id="contact_${contactIndex}">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close" onclick="removeContact(${contactIndex})"></button>
+                    <h6 class="mb-3">Contato Adicional</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Nome *</label>
+                            <input name="Contatos[${contactIndex}].Nome" class="form-control form-control-sm" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Cargo</label>
+                            <input name="Contatos[${contactIndex}].Cargo" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label small">Email *</label>
+                            <input name="Contatos[${contactIndex}].Email" type="email" class="form-control form-control-sm" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Telefone</label>
+                            <input name="Contatos[${contactIndex}].Telefone" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+                    <input type="hidden" name="Contatos[${contactIndex}].IsMaster" value="false" />
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            contactIndex++;
+        });
+
+        function removeContact(index) {
+            const el = document.getElementById(`contact_${index}`);
+            if(el) el.remove();
+        }
+    </script>
+}

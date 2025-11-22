@@ -1,0 +1,149 @@
+@model IEnumerable<Isodoc.Web.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Usuários e Permissões";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-people me-2"></i>Usuários e Permissões</h2>
+        <p class="text-muted">Gerencie usuários e suas permissões no sistema</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Novo Usuário
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Filtros e Pesquisa -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Pesquisar</label>
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Nome ou email...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Função no Sistema</label>
+                <select name="roleFilter" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="Usuario" selected="@(ViewBag.RoleFilter == "Usuario")">Usuário</option>
+                    <option value="Administrador" selected="@(ViewBag.RoleFilter == "Administrador")">Administrador</option>
+                    <option value="Seguidor" selected="@(ViewBag.RoleFilter == "Seguidor")">Seguidor</option>
+                    <option value="Master" selected="@(ViewBag.RoleFilter == "Master")">Master</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="statusFilter" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="Ativo" selected="@(ViewBag.StatusFilter == "Ativo")">Ativo</option>
+                    <option value="Inativo" selected="@(ViewBag.StatusFilter == "Inativo")">Inativo</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabela de Usuários -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Função</th>
+                        <th>Departamento</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-2">
+                                        @user.Nome?.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div>
+                                        <strong>@user.Nome</strong>
+                                        @if (user.IsMaster)
+                                        {
+                                            <span class="badge bg-warning text-dark ms-1">Master</span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@user.Email</td>
+                            <td>@user.Funcao</td>
+                            <td>@user.Departamento</td>
+                            <td>
+                                @switch (user.Role)
+                                {
+                                    case Isodoc.Web.Models.UserRole.Master:
+                                        <span class="badge bg-warning text-dark">Master</span>
+                                        break;
+                                    case Isodoc.Web.Models.UserRole.Administrador:
+                                        <span class="badge bg-primary">Administrador</span>
+                                        break;
+                                    case Isodoc.Web.Models.UserRole.Usuario:
+                                        <span class="badge bg-info">Usuário</span>
+                                        break;
+                                    case Isodoc.Web.Models.UserRole.Seguidor:
+                                        <span class="badge bg-secondary">Seguidor</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                @if (user.Ativo)
+                                {
+                                    <span class="badge bg-success">Ativo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inativo</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+    }
+</style>

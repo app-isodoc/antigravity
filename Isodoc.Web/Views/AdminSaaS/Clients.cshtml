@@ -1,0 +1,109 @@
+@model IEnumerable<Isodoc.Web.Models.Client>
+@{
+    Layout = "_LayoutAdminSaaS";
+    ViewData["Title"] = "Clientes";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Clientes</h2>
+        <p class="text-muted mb-0">Gerencie as empresas cadastradas na plataforma</p>
+    </div>
+    <a asp-action="CreateClient" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>Novo Cliente
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Empresa</th>
+                        <th>URL</th>
+                        <th>Plano</th>
+                        <th>Status</th>
+                        <th>Criado em</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar bg-light text-primary me-3 rounded-3 d-flex align-items-center justify-content-center border" style="width: 40px; height: 40px;">
+                                            <i class="bi bi-building"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">@item.NomeFantasia</div>
+                                            <div class="small text-muted">@item.CNPJ</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="https://isodoc.com.br/@item.UrlPersonalizada" target="_blank" class="text-decoration-none">
+                                        isodoc.com.br/<span class="fw-bold">@item.UrlPersonalizada</span> <i class="bi bi-box-arrow-up-right small ms-1"></i>
+                                    </a>
+                                </td>
+                                <td><span class="badge bg-info text-dark">@item.Plano</span></td>
+                                <td>
+                                    @if (item.Status == "Ativo")
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@item.Status</span>
+                                    }
+                                </td>
+                                <td>@item.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <a asp-action="EditClient" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form asp-action="ToggleClientStatus" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            @if (item.Status == "Ativo")
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Suspender" onclick="return confirm('Tem certeza que deseja suspender este cliente?')">
+                                                    <i class="bi bi-pause-circle"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Ativar">
+                                                    <i class="bi bi-play-circle"></i>
+                                                </button>
+                                            }
+                                        </form>
+                                        <form asp-action="ResendWelcomeEmail" method="post" class="d-inline ms-1">
+                                            <input type="hidden" name="clientId" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Reenviar Email Master" onclick="return confirm('Deseja redefinir a senha e reenviar o email para o usuário Master?')">
+                                                <i class="bi bi-envelope"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                Nenhum cliente cadastrado ainda.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

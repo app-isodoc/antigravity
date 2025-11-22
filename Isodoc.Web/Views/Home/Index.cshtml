@@ -1,0 +1,48 @@
+﻿@model Isodoc.Web.Controllers.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="text-center mb-4">
+    <h1 class="display-4">Bem-vindo ao Isodoc</h1>
+    <p>Sistema de Gestão da Qualidade</p>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Não Conformidades</div>
+            <div class="card-body">
+                <h5 class="card-title">@Model.OpenNonConformities Abertas</h5>
+                <p class="card-text">Total: @Model.TotalNonConformities</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Documentos</div>
+            <div class="card-body">
+                <h5 class="card-title">@Model.TotalDocuments</h5>
+                <p class="card-text">Documentos ativos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Indicadores</div>
+            <div class="card-body">
+                <h5 class="card-title">@Model.TotalIndicators</h5>
+                <p class="card-text">Monitorados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">Auditorias</div>
+            <div class="card-body">
+                <h5 class="card-title">@Model.TotalAudits</h5>
+                <p class="card-text">Programadas</p>
+            </div>
+        </div>
+    </div>
+</div>

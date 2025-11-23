@@ -1,0 +1,151 @@
+@model IEnumerable<Isodoc.Web.Models.NonConformity>
+@{
+    ViewData["Title"] = "Não Conformidades";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-exclamation-triangle me-2"></i>Não Conformidades</h2>
+        <p class="text-muted">Gerencie e monitore não conformidades</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Nova Não Conformidade
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="Aberta" selected="@(ViewBag.StatusFilter == "Aberta")">Aberta</option>
+                    <option value="Em Análise" selected="@(ViewBag.StatusFilter == "Em Análise")">Em Análise</option>
+                    <option value="Em Implantação" selected="@(ViewBag.StatusFilter == "Em Implantação")">Em Implantação</option>
+                    <option value="Encerrada" selected="@(ViewBag.StatusFilter == "Encerrada")">Encerrada</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Etapa</label>
+                <select name="etapa" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="Identificação" selected="@(ViewBag.EtapaFilter == "Identificação")">Identificação</option>
+                    <option value="Ações de Contenção" selected="@(ViewBag.EtapaFilter == "Ações de Contenção")">Ações de Contenção</option>
+                    <option value="Análise de Causa" selected="@(ViewBag.EtapaFilter == "Análise de Causa")">Análise de Causa</option>
+                    <option value="Ações Corretivas" selected="@(ViewBag.EtapaFilter == "Ações Corretivas")">Ações Corretivas</option>
+                    <option value="Verificação" selected="@(ViewBag.EtapaFilter == "Verificação")">Verificação</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabela -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Número</th>
+                        <th>Título</th>
+                        <th>Tipo</th>
+                        <th>Departamento</th>
+                        <th>Status</th>
+                        <th>Progresso</th>
+                        <th>Prazo</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <strong>@item.Numero</strong>
+                                </td>
+                                <td>
+                                    <div>@item.Titulo</div>
+                                    <small class="text-muted">@item.Tipo</small>
+                                </td>
+                                <td>
+                                    @switch (item.Tipo)
+                                    {
+                                        case "Interna":
+                                            <span class="badge bg-warning">Interna</span>
+                                            break;
+                                        case "Externa":
+                                            <span class="badge bg-danger">Externa</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-info">@item.Tipo</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@item.Departamento</td>
+                                <td>
+                                    @switch (item.Status)
+                                    {
+                                        case "Aberta":
+                                            <span class="badge bg-danger">Aberta</span>
+                                            break;
+                                        case "Em Análise":
+                                            <span class="badge bg-warning">Em Análise</span>
+                                            break;
+                                        case "Em Implantação":
+                                            <span class="badge bg-info">Em Implantação</span>
+                                            break;
+                                        case "Encerrada":
+                                            <span class="badge bg-success">Encerrada</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 8px; width: 100px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: @item.Progresso%" aria-valuenow="@item.Progresso" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <small>@item.Progresso%</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (item.PrazoConclusao.HasValue)
+                                    {
+                                        <span>@item.PrazoConclusao.Value.ToString("dd/MM/yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                Nenhuma não conformidade cadastrada ainda.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

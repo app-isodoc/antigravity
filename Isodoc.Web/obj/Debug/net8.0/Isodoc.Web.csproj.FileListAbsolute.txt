@@ -129,3 +129,4 @@ C:\Isodoc_Asp.Net\Isodoc.Web\obj\Debug\net8.0\refint\Isodoc.Web.dll
 C:\Isodoc_Asp.Net\Isodoc.Web\obj\Debug\net8.0\Isodoc.Web.pdb
 C:\Isodoc_Asp.Net\Isodoc.Web\obj\Debug\net8.0\Isodoc.Web.genruntimeconfig.cache
 C:\Isodoc_Asp.Net\Isodoc.Web\obj\Debug\net8.0\ref\Isodoc.Web.dll
+C:\Isodoc_Asp.Net\Isodoc.Web\obj\Debug\net8.0\Isodoc.Web.sourcelink.json

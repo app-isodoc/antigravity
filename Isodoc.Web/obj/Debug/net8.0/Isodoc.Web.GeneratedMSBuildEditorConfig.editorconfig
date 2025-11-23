@@ -46,6 +46,30 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5TYWFTXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/ClientesExternos/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xpZW50ZXNFeHRlcm5vc1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/ClientesExternos/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xpZW50ZXNFeHRlcm5vc1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/ClientesExternos/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xpZW50ZXNFeHRlcm5vc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/Departamentos/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGVwYXJ0YW1lbnRvc1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/Departamentos/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGVwYXJ0YW1lbnRvc1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/Departamentos/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGVwYXJ0YW1lbnRvc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [c:/Isodoc_Asp.Net/Isodoc.Web/Views/Documents/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdW1lbnRzXENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -64,6 +88,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [c:/Isodoc_Asp.Net/Isodoc.Web/Views/Landing/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGFuZGluZ1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/NonConformities/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm9uQ29uZm9ybWl0aWVzXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/NonConformities/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm9uQ29uZm9ybWl0aWVzXEVkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/NonConformities/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm9uQ29uZm9ybWl0aWVzXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [c:/Isodoc_Asp.Net/Isodoc.Web/Views/Shared/Error.cshtml]

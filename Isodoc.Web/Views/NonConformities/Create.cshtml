@@ -1,0 +1,553 @@
+@model Isodoc.Web.Models.NonConformity
+@{
+    ViewData["Title"] = "Nova Não Conformidade";
+    var users = ViewBag.Users as List<Isodoc.Web.Models.ApplicationUser>;
+    var clientes = ViewBag.Clientes as List<Isodoc.Web.Models.ClienteExterno>;
+    var departamentos = ViewBag.Departamentos as List<Isodoc.Web.Models.Departamento>;
+}
+
+<div class="mb-4">
+    <h2><i class="bi bi-plus-circle me-2"></i>Nova Não Conformidade</h2>
+    <p class="text-muted">Registre uma nova não conformidade no sistema</p>
+</div>
+
+<!-- Tabs de Etapas -->
+<ul class="nav nav-tabs mb-4" id="ncTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="identificacao-tab" data-bs-toggle="tab" data-bs-target="#identificacao" type="button" role="tab">
+            <i class="bi bi-clipboard-check me-1"></i> Identificação
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="contencao-tab" data-bs-toggle="tab" data-bs-target="#contencao" type="button" role="tab">
+            <i class="bi bi-shield-check me-1"></i> Ações de Contenção
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="analise-tab" data-bs-toggle="tab" data-bs-target="#analise" type="button" role="tab">
+            <i class="bi bi-search me-1"></i> Análise de Causa
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="corretivas-tab" data-bs-toggle="tab" data-bs-target="#corretivas" type="button" role="tab">
+            <i class="bi bi-tools me-1"></i> Ações Corretivas
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="verificacao-tab" data-bs-toggle="tab" data-bs-target="#verificacao" type="button" role="tab">
+            <i class="bi bi-check2-circle me-1"></i> Verificação
+        </button>
+    </li>
+</ul>
+
+<form asp-action="Create" method="post" id="ncForm">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="tab-content" id="ncTabContent">
+        <!-- Tab 1: Identificação -->
+        <div class="tab-pane fade show active" id="identificacao" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="bi bi-clipboard-check me-2"></i>Identificação</h5>
+                    
+                    <!-- Número da NC e Datas -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Número da NC</label>
+                            <input type="text" class="form-control" id="numeroNC" value="NC-2025-0001" readonly style="background-color: #f8f9fa;" />
+                            <small class="text-muted">Gerado automaticamente</small>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="DataOcorrencia" class="form-label">Data da Ocorrência *</label>
+                            <input asp-for="DataOcorrencia" type="date" class="form-control" id="dataOcorrencia" required onchange="calcularPrazo()" />
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="PrazoConclusao" class="form-label">Prazo para Conclusão *</label>
+                            <input asp-for="PrazoConclusao" type="date" class="form-control" id="prazoConclusao" required />
+                            <small class="text-muted">20 dias após ocorrência</small>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Severidade" class="form-label">Severidade *</label>
+                            <select asp-for="Severidade" class="form-select" required>
+                                <option value="Baixa">Baixa</option>
+                                <option value="Média" selected>Média</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Crítica">Crítica</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Título e Tipo -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label asp-for="Titulo" class="form-label">Título *</label>
+                            <input asp-for="Titulo" class="form-control" placeholder="Título breve da não conformidade" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Tipo" class="form-label">Tipo *</label>
+                            <select asp-for="Tipo" class="form-select" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="Interna">Interna</option>
+                                <option value="Externa">Externa</option>
+                                <option value="Auditoria">Auditoria</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Descrição -->
+                    <div class="mb-3">
+                        <label asp-for="Descricao" class="form-label">Descrição Detalhada *</label>
+                        <textarea asp-for="Descricao" class="form-control" rows="4" placeholder="Descreva a não conformidade em detalhes" required></textarea>
+                    </div>
+
+                    <!-- Cliente Envolvido e Departamento -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="ClienteEnvolvidoId" class="form-label">Cliente Envolvido (se aplicável)</label>
+                            <select asp-for="ClienteEnvolvidoId" class="form-select" id="clienteSelect">
+                                <option value="">Selecione o cliente</option>
+                                @if (clientes != null)
+                                {
+                                    foreach (var cliente in clientes)
+                                    {
+                                        <option value="@cliente.Id">@cliente.Nome</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Departamento" class="form-label">Departamento/Área</label>
+                            <select asp-for="Departamento" class="form-select" id="departamentoSelect">
+                                <option value="">Selecione o departamento</option>
+                                @if (departamentos != null)
+                                {
+                                    foreach (var depto in departamentos)
+                                    {
+                                        <option value="@depto.Nome">@depto.Nome</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tipo de Incidente -->
+                    <div class="mb-3">
+                        <label asp-for="TipoIncidente" class="form-label">Tipo de Incidente</label>
+                        <input asp-for="TipoIncidente" class="form-control" placeholder="Ex: Produto não conforme, Falha de processo" />
+                    </div>
+
+                    <!-- Evidências -->
+                    <h5 class="mb-3 mt-4"><i class="bi bi-paperclip me-2"></i>Evidências da Não Conformidade</h5>
+                    
+                    <div id="evidenciasList" class="mb-3"></div>
+
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addEvidencia()">
+                        <i class="bi bi-plus-circle me-1"></i> Adicionar Nova Evidência
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Tab 2: Ações de Contenção -->
+        <div class="tab-pane fade" id="contencao" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-muted">Registre as ações imediatas para conter o problema e evitar que ele se agrave.</p>
+
+                    <div class="mb-3">
+                        <label asp-for="ResponsavelContencaoId" class="form-label">Responsável Geral pela Contenção</label>
+                        <select asp-for="ResponsavelContencaoId" class="form-select">
+                            <option value="">Selecione o responsável</option>
+                            @if (users != null)
+                            {
+                                foreach (var user in users)
+                                {
+                                    <option value="@user.Id">@user.Nome - @user.Funcao</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <h5 class="mb-3">Ações de Contenção</h5>
+                    <div id="acoesContencaoList"></div>
+                    
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addAcaoContencao()">
+                        <i class="bi bi-plus-circle me-1"></i> Adicionar Ação
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Análise de Causa -->
+        <div class="tab-pane fade" id="analise" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>Prazo para Conclusão da NC:</strong> <span id="prazoDisplay">12/12/2025</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Metodologia de Análise</label>
+                        <select asp-for="MetodologiaAnalise" class="form-select" id="metodologiaSelect" onchange="showMetodologia()">
+                            <option value="">Selecione a metodologia</option>
+                            <option value="5Porques">5 Porquês</option>
+                            <option value="Ishikawa">Diagrama de Ishikawa (Espinha de Peixe)</option>
+                            <option value="Brainstorming">Brainstorming</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ResponsavelAnaliseId" class="form-label">Responsável pela Análise</label>
+                        <select asp-for="ResponsavelAnaliseId" class="form-select">
+                            <option value="">Selecione o responsável</option>
+                            @if (users != null)
+                            {
+                                foreach (var user in users)
+                                {
+                                    <option value="@user.Id">@user.Nome - @user.Funcao</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <!-- 5 Porquês -->
+                    <div id="metodo5Porques" style="display:none;" class="mb-3">
+                        <h6 class="text-primary"><i class="bi bi-question-circle me-2"></i>Método dos 5 Porquês</h6>
+                        <div class="mb-2">
+                            <label class="form-label">1º Por quê?</label>
+                            <textarea class="form-control" rows="2" placeholder="Por que o problema ocorreu?"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">2º Por quê?</label>
+                            <textarea class="form-control" rows="2" placeholder="Por que isso aconteceu?"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">3º Por quê?</label>
+                            <textarea class="form-control" rows="2" placeholder="Por que isso aconteceu?"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">4º Por quê?</label>
+                            <textarea class="form-control" rows="2" placeholder="Por que isso aconteceu?"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">5º Por quê?</label>
+                            <textarea class="form-control" rows="2" placeholder="Por que isso aconteceu?"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="sugerirIA()">
+                            <i class="bi bi-stars me-1"></i> Sugerir com IA
+                        </button>
+                    </div>
+
+                    <!-- Ishikawa -->
+                    <div id="metodoIshikawa" style="display:none;" class="mb-3">
+                        <h6 class="text-primary"><i class="bi bi-diagram-3 me-2"></i>Diagrama de Ishikawa</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Método</label>
+                                <textarea class="form-control" rows="2" placeholder="Causas relacionadas ao método/processo"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Máquina/Equipamento</label>
+                                <textarea class="form-control" rows="2" placeholder="Causas relacionadas a equipamentos"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Mão de Obra</label>
+                                <textarea class="form-control" rows="2" placeholder="Causas relacionadas a pessoas"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Material</label>
+                                <textarea class="form-control" rows="2" placeholder="Causas relacionadas a materiais"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Medida</label>
+                                <textarea class="form-control" rows="2" placeholder="Causas relacionadas a medições"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Meio Ambiente</label>
+                                <textarea class="form-control" rows="2" placeholder="Causas relacionadas ao ambiente"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CausaRaiz" class="form-label">Causa Raiz Identificada</label>
+                        <textarea asp-for="CausaRaiz" class="form-control" rows="3" placeholder="Descreva a causa raiz fundamental do problema. Utilize os resultados da análise (5 Porquês ou Ishikawa) para preencher este campo."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Detalhamento da Análise</label>
+                        <textarea asp-for="AnaliseCausa" class="form-control" rows="4" placeholder="Detalhe adicionais sobre a análise de causa"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Ações Corretivas -->
+        <div class="tab-pane fade" id="corretivas" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-muted">Registre as ações para corrigir a causa raiz do problema e evitar sua recorrência.</p>
+
+                    <div class="mb-3">
+                        <label asp-for="ResponsavelCorretivasId" class="form-label">Responsável Geral pelas Ações Corretivas</label>
+                        <select asp-for="ResponsavelCorretivasId" class="form-select">
+                            <option value="">Selecione o responsável</option>
+                            @if (users != null)
+                            {
+                                foreach (var user in users)
+                                {
+                                    <option value="@user.Id">@user.Nome - @user.Funcao</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <h5 class="mb-3">Ações Corretivas</h5>
+                    <div id="acoesCorretivasList"></div>
+                    
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addAcaoCorretiva()">
+                        <i class="bi bi-plus-circle me-1"></i> Adicionar Ação
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Verificação -->
+        <div class="tab-pane fade" id="verificacao" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        <strong>Prazo para Conclusão da NC:</strong> <span id="prazoDisplay2">12/12/2025</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Verificação de Eficácia *</label>
+                        <textarea asp-for="ResultadoVerificacao" class="form-control" rows="4" placeholder="Descreva a verificação de eficácia das ações"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status de Verificação</label>
+                        <select class="form-select">
+                            <option value="Pendente">Pendente</option>
+                            <option value="Em Andamento">Em Andamento</option>
+                            <option value="Concluída">Concluída</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Data de Verificação *</label>
+                        <input type="date" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ResponsavelVerificacaoId" class="form-label">Responsável pela Verificação</label>
+                        <select asp-for="ResponsavelVerificacaoId" class="form-select">
+                            <option value="">Selecione o responsável</option>
+                            @if (users != null)
+                            {
+                                foreach (var user in users)
+                                {
+                                    <option value="@user.Id">@user.Nome - @user.Funcao</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i> Salvar
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        let contencaoCounter = 0;
+        let corretivaCounter = 0;
+        let evidenciaCounter = 0;
+
+        // Calcular prazo automaticamente (20 dias após data de ocorrência)
+        function calcularPrazo() {
+            const dataOcorrencia = document.getElementById('dataOcorrencia').value;
+            if (dataOcorrencia) {
+                const data = new Date(dataOcorrencia);
+                data.setDate(data.getDate() + 20);
+                
+                const ano = data.getFullYear();
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const dia = String(data.getDate()).padStart(2, '0');
+                
+                document.getElementById('prazoConclusao').value = `${ano}-${mes}-${dia}`;
+                atualizarPrazoDisplay();
+            }
+        }
+
+        function atualizarPrazoDisplay() {
+            const prazoInput = document.getElementById('prazoConclusao');
+            if (prazoInput && prazoInput.value) {
+                const date = new Date(prazoInput.value);
+                const formatted = date.toLocaleDateString('pt-BR');
+                document.getElementById('prazoDisplay').textContent = formatted;
+                document.getElementById('prazoDisplay2').textContent = formatted;
+            }
+        }
+
+        // Adicionar evidência com upload de arquivos
+        function addEvidencia() {
+            evidenciaCounter++;
+            const html = `
+                <div class="card mb-3" id="evidencia${evidenciaCounter}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">Evidência #${evidenciaCounter}</h6>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeEvidencia('evidencia${evidenciaCounter}')">
+                                <i class="bi bi-trash"></i> Remover
+                            </button>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Descrição da Evidência *</label>
+                            <textarea name="Evidencias[${evidenciaCounter}].Descricao" class="form-control" rows="2" placeholder="Descreva o que esta evidência representa..." required></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Arquivo (Imagem ou PDF)</label>
+                            <input type="file" name="Evidencias[${evidenciaCounter}].Arquivo" class="form-control" accept=".jpg,.jpeg,.png,.pdf" multiple />
+                            <small class="text-muted">Formatos permitidos: JPG, PNG, PDF. Tamanho máximo: 5MB</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('evidenciasList').insertAdjacentHTML('beforeend', html);
+        }
+
+        function removeEvidencia(id) {
+            document.getElementById(id).remove();
+        }
+
+        function addAcaoContencao() {
+            contencaoCounter++;
+            const html = `
+                <div class="card mb-3" id="acaoContencao${contencaoCounter}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">Ação de Contenção #${contencaoCounter}</h6>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAcao('acaoContencao${contencaoCounter}')">
+                                <i class="bi bi-trash"></i> Remover
+                            </button>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Descrição da Ação *</label>
+                            <textarea name="AcoesContencao[${contencaoCounter}].Descricao" class="form-control" rows="2" placeholder="Descreva a ação de contenção" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Responsável *</label>
+                                <select name="AcoesContencao[${contencaoCounter}].ResponsavelId" class="form-select">
+                                    <option value="">Selecione</option>
+                                    @if (users != null)
+                                    {
+                                        foreach (var user in users)
+                                        {
+                                            <text><option value="@user.Id">@user.Nome</option></text>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Departamento</label>
+                                <input name="AcoesContencao[${contencaoCounter}].Departamento" class="form-control" placeholder="Departamento" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Prazo *</label>
+                                <input name="AcoesContencao[${contencaoCounter}].Prazo" type="date" class="form-control" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('acoesContencaoList').insertAdjacentHTML('beforeend', html);
+        }
+
+        function addAcaoCorretiva() {
+            corretivaCounter++;
+            const html = `
+                <div class="card mb-3" id="acaoCorretiva${corretivaCounter}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">Ação Corretiva #${corretivaCounter}</h6>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAcao('acaoCorretiva${corretivaCounter}')">
+                                <i class="bi bi-trash"></i> Remover
+                            </button>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Descrição da Ação *</label>
+                            <textarea name="AcoesCorretivas[${corretivaCounter}].Descricao" class="form-control" rows="2" placeholder="Descreva a ação corretiva" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Responsável *</label>
+                                <select name="AcoesCorretivas[${corretivaCounter}].ResponsavelId" class="form-select">
+                                    <option value="">Selecione</option>
+                                    @if (users != null)
+                                    {
+                                        foreach (var user in users)
+                                        {
+                                            <text><option value="@user.Id">@user.Nome</option></text>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Departamento</label>
+                                <input name="AcoesCorretivas[${corretivaCounter}].Departamento" class="form-control" placeholder="Departamento" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Prazo *</label>
+                                <input name="AcoesCorretivas[${corretivaCounter}].Prazo" type="date" class="form-control" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('acoesCorretivasList').insertAdjacentHTML('beforeend', html);
+        }
+
+        function removeAcao(id) {
+            document.getElementById(id).remove();
+        }
+
+        function showMetodologia() {
+            const metodologia = document.getElementById('metodologiaSelect').value;
+            document.getElementById('metodo5Porques').style.display = metodologia === '5Porques' ? 'block' : 'none';
+            document.getElementById('metodoIshikawa').style.display = metodologia === 'Ishikawa' ? 'block' : 'none';
+        }
+
+        function sugerirIA() {
+            alert('Funcionalidade de sugestão com IA será implementada em breve!');
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Definir data de hoje como padrão para data de ocorrência
+            const hoje = new Date();
+            const ano = hoje.getFullYear();
+            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+            const dia = String(hoje.getDate()).padStart(2, '0');
+            document.getElementById('dataOcorrencia').value = `${ano}-${mes}-${dia}`;
+            
+            // Calcular prazo inicial
+            calcularPrazo();
+        });
+    </script>
+}

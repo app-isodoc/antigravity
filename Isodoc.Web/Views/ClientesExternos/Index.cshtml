@@ -1,0 +1,90 @@
+@model IEnumerable<Isodoc.Web.Models.ClienteExterno>
+@{
+    ViewData["Title"] = "Clientes Externos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-building me-2"></i>Clientes Externos</h2>
+        <p class="text-muted">Gerencie os clientes envolvidos nas não conformidades</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Novo Cliente
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CNPJ</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                            <th>Cidade/Estado</th>
+                            <th>Status</th>
+                            <th width="150">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cliente in Model)
+                        {
+                            <tr>
+                                <td><strong>@cliente.Nome</strong></td>
+                                <td>@(cliente.CNPJ ?? "-")</td>
+                                <td>@(cliente.Email ?? "-")</td>
+                                <td>@(cliente.Telefone ?? "-")</td>
+                                <td>@(cliente.Cidade != null && cliente.Estado != null ? $"{cliente.Cidade}/{cliente.Estado}" : "-")</td>
+                                <td>
+                                    @if (cliente.Ativo)
+                                    {
+                                        <span class="badge bg-success">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inativo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Edit" asp-route-id="@cliente.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    @if (cliente.Ativo)
+                                    {
+                                        <form asp-action="Delete" asp-route-id="@cliente.Id" method="post" class="d-inline" onsubmit="return confirm('Deseja realmente desativar este cliente?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Desativar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-building" style="font-size: 48px; color: #ccc;"></i>
+                <p class="text-muted mt-3">Nenhum cliente cadastrado ainda.</p>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Cadastrar Primeiro Cliente
+                </a>
+            </div>
+        }
+    </div>
+</div>

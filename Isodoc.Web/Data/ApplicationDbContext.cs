@@ -17,8 +17,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<Client> Clients { get; set; }
+    public DbSet<ClienteExterno> ClientesExternos { get; set; }
+    public DbSet<Departamento> Departamentos { get; set; }
     public DbSet<Document> Documents { get; set; }
     public DbSet<NonConformity> NonConformities { get; set; }
+    public DbSet<NonConformityEvidence> NonConformityEvidences { get; set; }
+    public DbSet<NonConformityAction> NonConformityActions { get; set; }
     public DbSet<Indicator> Indicators { get; set; }
     public DbSet<IndicatorMeasurement> IndicatorMeasurements { get; set; }
     public DbSet<AuditProgram> AuditPrograms { get; set; }

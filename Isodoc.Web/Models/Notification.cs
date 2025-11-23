@@ -1,39 +1,28 @@
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Isodoc.Web.Models;
-
-public class Notification : IMustHaveTenant
+namespace Isodoc.Web.Models
 {
-    public Guid Id { get; set; }
+    public class Notification
+    {
+        public Guid Id { get; set; }
 
-    [Required]
-    public string UserId { get; set; } = string.Empty;
-    public ApplicationUser? User { get; set; }
+        [Required]
+        public string UserId { get; set; }
+        [ForeignKey("UserId")]
+        public virtual ApplicationUser? User { get; set; }
 
-    [Required]
-    [StringLength(200)]
-    public string Titulo { get; set; } = string.Empty;
+        [Required]
+        public string Title { get; set; } = string.Empty;
 
-    [Required]
-    public string Mensagem { get; set; } = string.Empty;
+        [Required]
+        public string Message { get; set; } = string.Empty;
 
-    public NotificationType Tipo { get; set; } = NotificationType.Info;
+        public string? Link { get; set; }
 
-    public bool Lida { get; set; } = false;
+        public bool IsRead { get; set; } = false;
 
-    public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
-
-    [StringLength(500)]
-    public string? Link { get; set; } // URL para ação relacionada
-
-    public Guid ClientId { get; set; }
-    public Client? Client { get; set; }
-}
-
-public enum NotificationType
-{
-    Info = 0,
-    Warning = 1,
-    Alert = 2,
-    Success = 3
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
 }

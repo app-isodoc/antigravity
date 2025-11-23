@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Isodoc.Web.Models;
 
@@ -41,18 +42,28 @@ public class NonConformity : IMustHaveTenant
 
     public DateTime? PrazoConclusao { get; set; }
 
-    // Responsáveis
+    // Responsáveis por cada etapa (ISO 9001 Workflow)
     public string? ResponsavelContencaoId { get; set; }
-    public ApplicationUser? ResponsavelContencao { get; set; }
+    [ForeignKey("ResponsavelContencaoId")]
+    public virtual ApplicationUser? ResponsavelContencao { get; set; }
 
-    public string? ResponsavelAnaliseId { get; set; }
-    public ApplicationUser? ResponsavelAnalise { get; set; }
+    public string? ResponsavelAnaliseCausaId { get; set; }
+    [ForeignKey("ResponsavelAnaliseCausaId")]
+    public virtual ApplicationUser? ResponsavelAnaliseCausa { get; set; }
 
-    public string? ResponsavelCorretivasId { get; set; }
-    public ApplicationUser? ResponsavelCorretivas { get; set; }
+    public string? ResponsavelAcaoCorretivaId { get; set; }
+    [ForeignKey("ResponsavelAcaoCorretivaId")]
+    public virtual ApplicationUser? ResponsavelAcaoCorretiva { get; set; }
 
     public string? ResponsavelVerificacaoId { get; set; }
-    public ApplicationUser? ResponsavelVerificacao { get; set; }
+    [ForeignKey("ResponsavelVerificacaoId")]
+    public virtual ApplicationUser? ResponsavelVerificacao { get; set; }
+
+    // Status do Workflow (Controle de etapas)
+    public bool ContencaoConcluida { get; set; }
+    public bool AnaliseCausaConcluida { get; set; }
+    public bool AcaoCorretivaConcluida { get; set; }
+    public bool VerificacaoConcluida { get; set; }
 
     // Ações de Contenção
     public string? AcoesContencao { get; set; }
@@ -75,7 +86,7 @@ public class NonConformity : IMustHaveTenant
     public DateTime? DataVerificacao { get; set; }
     public bool? EficazVerificacao { get; set; }
 
-    // Controle
+    // Controle Geral
     [StringLength(50)]
     public string Status { get; set; } = "Aberta"; // Aberta, Em Análise, Em Implantação, Encerrada
 
@@ -91,8 +102,8 @@ public class NonConformity : IMustHaveTenant
     public Client? Client { get; set; }
 
     // Relacionamentos
-    public ICollection<NonConformityEvidence> Evidencias { get; set; } = new List<NonConformityEvidence>();
-    public ICollection<NonConformityAction> Acoes { get; set; } = new List<NonConformityAction>();
+    public virtual ICollection<NonConformityEvidence> Evidencias { get; set; } = new List<NonConformityEvidence>();
+    public virtual ICollection<NonConformityAction> Acoes { get; set; } = new List<NonConformityAction>();
 }
 
 public class NonConformityEvidence

@@ -23,12 +23,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<NonConformity> NonConformities { get; set; }
     public DbSet<NonConformityEvidence> NonConformityEvidences { get; set; }
     public DbSet<NonConformityAction> NonConformityActions { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
     public DbSet<Indicator> Indicators { get; set; }
     public DbSet<IndicatorMeasurement> IndicatorMeasurements { get; set; }
     public DbSet<AuditProgram> AuditPrograms { get; set; }
     public DbSet<UserModulePermission> UserModulePermissions { get; set; }
     public DbSet<SystemModule> SystemModules { get; set; }
-    public DbSet<Notification> Notifications { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

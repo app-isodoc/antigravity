@@ -1,53 +1,54 @@
 using Microsoft.Data.Sqlite;
 
-Console.WriteLine("🔧 Corrigindo usuário Demo e criando Cliente Demo...\n");
+Console.WriteLine("🔧 Atualizando esquema do banco de dados para ISO 9001 Workflow...\n");
 
 var connectionString = "DataSource=Isodoc.Web/isodoc.db";
 
 using var connection = new SqliteConnection(connectionString);
 connection.Open();
 
-// 1. Verificar se existe Cliente Demo
-var checkClientCmd = connection.CreateCommand();
-checkClientCmd.CommandText = "SELECT Id FROM Clients WHERE EmailEmpresa = 'admin@demo.com' LIMIT 1";
-var existingClientId = checkClientCmd.ExecuteScalar();
-
-string clientId;
-
-if (existingClientId == null)
+var commands = new[]
 {
-    clientId = Guid.NewGuid().ToString();
-    Console.WriteLine($"Criando novo Cliente Demo com ID: {clientId}");
+    "ALTER TABLE NonConformities ADD COLUMN ResponsavelContencaoId TEXT;",
+    "ALTER TABLE NonConformities ADD COLUMN ResponsavelAnaliseCausaId TEXT;",
+    "ALTER TABLE NonConformities ADD COLUMN ResponsavelAcaoCorretivaId TEXT;",
+    "ALTER TABLE NonConformities ADD COLUMN ResponsavelVerificacaoId TEXT;",
+    "ALTER TABLE NonConformities ADD COLUMN ContencaoConcluida INTEGER NOT NULL DEFAULT 0;",
+    "ALTER TABLE NonConformities ADD COLUMN AnaliseCausaConcluida INTEGER NOT NULL DEFAULT 0;",
+    "ALTER TABLE NonConformities ADD COLUMN AcaoCorretivaConcluida INTEGER NOT NULL DEFAULT 0;",
+    "ALTER TABLE NonConformities ADD COLUMN VerificacaoConcluida INTEGER NOT NULL DEFAULT 0;",
     
-    using var insertClientCmd = connection.CreateCommand();
-    insertClientCmd.CommandText = @"
-        INSERT INTO Clients (Id, NomeFantasia, RazaoSocial, CNPJ, EmailEmpresa, Telefone, Logradouro, Numero, Bairro, Cidade, Estado, CEP, Status, CreatedAt, UrlPersonalizada, ValorMensal, Plano)
-        VALUES (@Id, 'Empresa Demo', 'Empresa Demo LTDA', '00.000.000/0001-00', 'admin@demo.com', '(11) 99999-9999', 'Rua Demo', '123', 'Centro', 'São Paulo', 'SP', '00000-000', 'Ativo', @CreatedAt, 'demo.isodoc.com.br', 0, 'Free')";
-    
-    insertClientCmd.Parameters.AddWithValue("@Id", clientId);
-    insertClientCmd.Parameters.AddWithValue("@CreatedAt", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
-    insertClientCmd.ExecuteNonQuery();
-}
-else
+    // Recriar Tabela de Notificações para garantir estrutura correta
+    "DROP TABLE IF EXISTS Notifications;",
+    @"CREATE TABLE Notifications (
+        Id TEXT PRIMARY KEY,
+        UserId TEXT NOT NULL,
+        Title TEXT NOT NULL,
+        Message TEXT NOT NULL,
+        Link TEXT,
+        IsRead INTEGER NOT NULL DEFAULT 0,
+        CreatedAt TEXT NOT NULL,
+        FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE
+    );"
+};
+
+foreach (var cmdText in commands)
 {
-    clientId = existingClientId.ToString();
-    Console.WriteLine($"Cliente Demo já existe com ID: {clientId}");
+    try
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = cmdText;
+        command.ExecuteNonQuery();
+        Console.WriteLine($"✅ Sucesso: {cmdText}");
+    }
+    catch (SqliteException ex) when (ex.SqliteErrorCode == 1) // Error 1: duplicate column name
+    {
+        Console.WriteLine($"ℹ️ Coluna já existe (ignorado): {cmdText}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Erro ao executar '{cmdText}': {ex.Message}");
+    }
 }
 
-// 2. Atualizar usuário admin@demo.com com o ClientId
-Console.WriteLine("Atualizando usuário admin@demo.com...");
-using var updateUserCmd = connection.CreateCommand();
-updateUserCmd.CommandText = "UPDATE AspNetUsers SET ClientId = @ClientId WHERE Email = 'admin@demo.com'";
-updateUserCmd.Parameters.AddWithValue("@ClientId", clientId);
-int rowsAffected = updateUserCmd.ExecuteNonQuery();
-
-if (rowsAffected > 0)
-{
-    Console.WriteLine("✅ Usuário admin@demo.com atualizado com sucesso!");
-}
-else
-{
-    Console.WriteLine("⚠ Usuário admin@demo.com não encontrado.");
-}
-
-Console.WriteLine("\n✅ Correção concluída!");
+Console.WriteLine("\n✅ Migração concluída!");

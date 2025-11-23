@@ -10,22 +10,9 @@
     <link rel="stylesheet" href="~/Isodoc.Web.styles.css" asp-append-version="true" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-@*
 @inject Isodoc.Web.Services.ICurrentTenantService TenantService
 @inject Isodoc.Web.Data.ApplicationDbContext DbContext
-@{
-    var clientName = "";
-    if (TenantService.ClientId != null)
-    {
-        var client = await DbContext.Clients.FindAsync(TenantService.ClientId.Value);
-        clientName = client?.NomeFantasia ?? "";
-    }
-}
-*@
-@{
-    // garante que clientName exista sempre e evita código assíncrono aqui
-    var clientName = ViewBag.ClientName as string ?? (User?.Identity?.Name ?? "");
-}
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -188,11 +175,16 @@
             <i class="bi bi-shield-check"></i>
             <span class="brand-text ms-2">ISODOC</span>
             @{
-                var _clientName = ViewBag.ClientName as string ?? (User?.Identity?.Name ?? "");
+                var clientName = "Administração Global";
+                if (TenantService.ClientId != null)
+                {
+                    var client = await DbContext.Clients.FindAsync(TenantService.ClientId.Value);
+                    clientName = client?.NomeFantasia ?? "Empresa";
+                }
             }
-            @if (!string.IsNullOrEmpty(_clientName))
+            @if (!string.IsNullOrEmpty(clientName))
             {
-                <div class="sidebar-brand-company">@_clientName</div>
+                <div class="sidebar-brand-company">@clientName</div>
             }
         </div>
         <ul class="sidebar-menu">
@@ -255,9 +247,19 @@
                 <i class="bi bi-list"></i>
             </button>
             <div class="d-flex align-items-center gap-3">
-                <div class="notification-bell">
-                    <i class="bi bi-bell"></i>
-                    <span class="notification-badge">3</span>
+                <div class="dropdown d-inline-block">
+                    <div class="notification-bell" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                    </div>
+                    <div class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                        <div class="p-2 border-bottom fw-bold bg-light">Notificações</div>
+                        <div id="notificationList">
+                            <div class="text-center p-3">
+                                <small class="text-muted">Carregando...</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <partial name="_LoginPartial" />
             </div>
@@ -290,6 +292,53 @@
                 }
             });
         });
+        // Notification System
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNotificationCount();
+            
+            // Update count every 60 seconds
+            setInterval(updateNotificationCount, 60000);
+            
+            // Load notifications when dropdown is opened
+            const dropdown = document.getElementById('notificationDropdown');
+            if (dropdown) {
+                dropdown.addEventListener('show.bs.dropdown', function () {
+                    loadNotifications();
+                });
+            }
+        });
+
+        function updateNotificationCount() {
+            fetch('/Notifications/GetUnreadCount')
+                .then(response => response.json())
+                .then(count => {
+                    const badge = document.getElementById('notificationCount');
+                    if (count > 0) {
+                        badge.innerText = count;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Erro ao buscar notificações:', err));
+        }
+
+        function loadNotifications() {
+            fetch('/Notifications/GetLatest')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('notificationList').innerHTML = html;
+                })
+                .catch(err => console.error('Erro ao carregar lista:', err));
+        }
+
+        function markAsRead(id) {
+            fetch('/Notifications/MarkAsRead?id=' + id, { method: 'POST' })
+                .then(() => {
+                    updateNotificationCount(); // Update badge
+                    // Optional: visual feedback on the item
+                });
+        }
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -1,13 +1,29 @@
 @model Isodoc.Web.Models.NonConformity
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<Isodoc.Web.Models.ApplicationUser> UserManager
+
 @{
     ViewData["Title"] = $"NC - {Model.Numero}";
     var users = ViewBag.Users as List<Isodoc.Web.Models.ApplicationUser>;
+    
+    var currentUser = await UserManager.GetUserAsync(User);
+    var currentUserId = currentUser?.Id;
+    
+    // Regras de Permissão (ISO 9001 Workflow)
+    bool isCreator = Model.CreatedById == currentUserId;
+    bool isResponsavelContencao = Model.ResponsavelContencaoId == currentUserId;
+    bool isResponsavelAnalise = Model.ResponsavelAnaliseCausaId == currentUserId;
+    bool isResponsavelCorretiva = Model.ResponsavelAcaoCorretivaId == currentUserId;
+    bool isResponsavelVerificacao = Model.ResponsavelVerificacaoId == currentUserId;
+    
+    // Admin override (opcional, mas útil para testes)
+    // bool isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2><i class="bi bi-exclamation-triangle me-2"></i>Não Conformidade</h2>
-        <p class="text-muted mb-0">Número: <strong>@Model.Numero</strong></p>
+        <p class="text-muted mb-0">Número: <strong>@Model.Numero</strong> | Status: <span class="badge bg-primary">@Model.Status</span></p>
     </div>
     <a asp-action="Index" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> Voltar
@@ -56,6 +72,13 @@
     <div class="tab-pane fade show active" id="identificacao" role="tabpanel">
         <div class="card">
             <div class="card-body">
+                @if (!isCreator)
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-lock-fill me-2"></i> Somente o criador da NC pode editar esta etapa.
+                    </div>
+                }
+
                 <form asp-action="Edit" method="post">
                     <input type="hidden" asp-for="Id" />
                     <input type="hidden" asp-for="Numero" />
@@ -66,81 +89,107 @@
                     <input type="hidden" asp-for="EtapaAtual" />
                     <input type="hidden" asp-for="Progresso" />
 
-                    <h5 class="mb-3">Informações Básicas</h5>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label asp-for="Titulo" class="form-label">Título</label>
-                            <input asp-for="Titulo" class="form-control" />
+                    <fieldset disabled="@(!isCreator ? "disabled" : null)">
+                        <h5 class="mb-3">Informações Básicas</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Titulo" class="form-label">Título</label>
+                                <input asp-for="Titulo" class="form-control" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="Tipo" class="form-label">Tipo</label>
+                                <select asp-for="Tipo" class="form-select">
+                                    <option value="Interna">Interna</option>
+                                    <option value="Externa">Externa</option>
+                                    <option value="Auditoria">Auditoria</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="Severidade" class="form-label">Severidade</label>
+                                <select asp-for="Severidade" class="form-select">
+                                    <option value="Baixa">Baixa</option>
+                                    <option value="Média">Média</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Crítica">Crítica</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label asp-for="Tipo" class="form-label">Tipo</label>
-                            <select asp-for="Tipo" class="form-select">
-                                <option value="Interna">Interna</option>
-                                <option value="Externa">Externa</option>
-                                <option value="Auditoria">Auditoria</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label asp-for="Severidade" class="form-label">Severidade</label>
-                            <select asp-for="Severidade" class="form-select">
-                                <option value="Baixa">Baixa</option>
-                                <option value="Média">Média</option>
-                                <option value="Alta">Alta</option>
-                                <option value="Crítica">Crítica</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Descricao" class="form-label">Descrição Detalhada</label>
-                        <textarea asp-for="Descricao" class="form-control" rows="4"></textarea>
-                    </div>
+                        <div class="mb-3">
+                            <label asp-for="Descricao" class="form-label">Descrição Detalhada</label>
+                            <textarea asp-for="Descricao" class="form-control" rows="4"></textarea>
+                        </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label asp-for="Departamento" class="form-label">Departamento</label>
-                            <input asp-for="Departamento" class="form-control" />
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="Departamento" class="form-label">Departamento</label>
+                                <input asp-for="Departamento" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="TipoIncidente" class="form-label">Tipo de Incidente</label>
+                                <input asp-for="TipoIncidente" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="PrazoConclusao" class="form-label">Prazo para Conclusão</label>
+                                <input asp-for="PrazoConclusao" type="date" class="form-control" />
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label asp-for="TipoIncidente" class="form-label">Tipo de Incidente</label>
-                            <input asp-for="TipoIncidente" class="form-control" />
+                        
+                        <!-- Responsáveis (Somente leitura aqui, editável apenas na criação ou por admin) -->
+                        <h5 class="mb-3 mt-4">Responsáveis Definidos</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Contenção</label>
+                                <select asp-for="ResponsavelContencaoId" class="form-select" asp-items="@(new SelectList(users, "Id", "Nome"))" disabled></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Análise Causa</label>
+                                <select asp-for="ResponsavelAnaliseCausaId" class="form-select" asp-items="@(new SelectList(users, "Id", "Nome"))" disabled></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Ação Corretiva</label>
+                                <select asp-for="ResponsavelAcaoCorretivaId" class="form-select" asp-items="@(new SelectList(users, "Id", "Nome"))" disabled></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Verificação</label>
+                                <select asp-for="ResponsavelVerificacaoId" class="form-select" asp-items="@(new SelectList(users, "Id", "Nome"))" disabled></select>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label asp-for="PrazoConclusao" class="form-label">Prazo para Conclusão</label>
-                            <input asp-for="PrazoConclusao" type="date" class="form-control" />
-                        </div>
-                    </div>
 
-                    <h5 class="mb-3 mt-4">Evidências da Não Conformidade</h5>
-                    
-                    @if (Model.Evidencias != null && Model.Evidencias.Any())
-                    {
-                        <div class="list-group mb-3">
-                            @foreach (var evidencia in Model.Evidencias)
-                            {
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <p class="mb-1">@evidencia.Descricao</p>
-                                            <small class="text-muted">@evidencia.DataUpload.ToString("dd/MM/yyyy HH:mm")</small>
-                                        </div>
+                        @if (isCreator)
+                        {
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-1"></i> Salvar Alterações
+                                </button>
+                            </div>
+                        }
+                    </fieldset>
+                </form>
+                
+                <!-- Evidências sempre visíveis, mas adição restrita? Vamos deixar livre por enquanto -->
+                <h5 class="mb-3 mt-4">Evidências da Não Conformidade</h5>
+                @if (Model.Evidencias != null && Model.Evidencias.Any())
+                {
+                    <div class="list-group mb-3">
+                        @foreach (var evidencia in Model.Evidencias)
+                        {
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="mb-1">@evidencia.Descricao</p>
+                                        <small class="text-muted">@evidencia.DataUpload.ToString("dd/MM/yyyy HH:mm")</small>
                                     </div>
                                 </div>
-                            }
-                        </div>
-                    }
-
-                    <button type="button" class="btn btn-outline-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addEvidenceModal">
-                        <i class="bi bi-plus-circle me-1"></i> Adicionar Evidência
-                    </button>
-
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save me-1"></i> Salvar Alterações
-                        </button>
+                            </div>
+                        }
                     </div>
-                </form>
+                }
+
+                <button type="button" class="btn btn-outline-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addEvidenceModal">
+                    <i class="bi bi-plus-circle me-1"></i> Adicionar Evidência
+                </button>
             </div>
         </div>
     </div>
@@ -149,7 +198,15 @@
     <div class="tab-pane fade" id="contencao" role="tabpanel">
         <div class="card">
             <div class="card-body">
+                @if (!isResponsavelContencao)
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-lock-fill me-2"></i> Você não é o responsável por esta etapa. Apenas leitura.
+                    </div>
+                }
+                
                 <form asp-action="Edit" method="post">
+                    <!-- Campos ocultos necessários para o Model Binding não quebrar -->
                     <input type="hidden" asp-for="Id" />
                     <input type="hidden" asp-for="Numero" />
                     <input type="hidden" asp-for="Titulo" />
@@ -162,61 +219,58 @@
                     <input type="hidden" asp-for="Status" />
                     <input type="hidden" asp-for="EtapaAtual" />
                     <input type="hidden" asp-for="Progresso" />
+                    
+                    <!-- Preservar responsáveis -->
+                    <input type="hidden" asp-for="ResponsavelContencaoId" />
+                    <input type="hidden" asp-for="ResponsavelAnaliseCausaId" />
+                    <input type="hidden" asp-for="ResponsavelAcaoCorretivaId" />
+                    <input type="hidden" asp-for="ResponsavelVerificacaoId" />
 
-                    <p class="text-muted">Registre as ações imediatas para conter o problema e evitar que ele se agrave ou afete outros processos ou clientes.</p>
+                    <fieldset disabled="@(!isResponsavelContencao ? "disabled" : null)">
+                        <p class="text-muted">Registre as ações imediatas para conter o problema e evitar que ele se agrave ou afete outros processos ou clientes.</p>
 
-                    <div class="mb-3">
-                        <label asp-for="ResponsavelContencaoId" class="form-label">Responsável Geral pela Contenção</label>
-                        <select asp-for="ResponsavelContencaoId" class="form-select">
-                            <option value="">Selecione o responsável</option>
-                            @if (users != null)
-                            {
-                                foreach (var user in users)
+                        <h5 class="mb-3">Ações de Contenção</h5>
+
+                        @if (Model.Acoes != null && Model.Acoes.Any(a => a.Tipo == "Contenção"))
+                        {
+                            <div class="list-group mb-3">
+                                @foreach (var acao in Model.Acoes.Where(a => a.Tipo == "Contenção"))
                                 {
-                                    <option value="@user.Id">@user.Nome - @user.Funcao</option>
-                                }
-                            }
-                        </select>
-                    </div>
-
-                    <h5 class="mb-3">Ações de Contenção</h5>
-
-                    @if (Model.Acoes != null && Model.Acoes.Any(a => a.Tipo == "Contenção"))
-                    {
-                        <div class="list-group mb-3">
-                            @foreach (var acao in Model.Acoes.Where(a => a.Tipo == "Contenção"))
-                            {
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <p class="mb-1"><strong>@acao.Descricao</strong></p>
-                                            <small class="text-muted">
-                                                Responsável: @(acao.Responsavel?.Nome ?? "Não atribuído") | 
-                                                Departamento: @(acao.Departamento ?? "-") | 
-                                                Prazo: @(acao.Prazo?.ToString("dd/MM/yyyy") ?? "-")
-                                            </small>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <p class="mb-1"><strong>@acao.Descricao</strong></p>
+                                                <small class="text-muted">
+                                                    Responsável: @(acao.Responsavel?.Nome ?? "Não atribuído") | 
+                                                    Departamento: @(acao.Departamento ?? "-") | 
+                                                    Prazo: @(acao.Prazo?.ToString("dd/MM/yyyy") ?? "-")
+                                                </small>
+                                            </div>
+                                            <span class="badge bg-@(acao.Status == "Concluída" ? "success" : acao.Status == "Em Andamento" ? "warning" : "secondary")">
+                                                @acao.Status
+                                            </span>
                                         </div>
-                                        <span class="badge bg-@(acao.Status == "Concluída" ? "success" : acao.Status == "Em Andamento" ? "warning" : "secondary")">
-                                            @acao.Status
-                                        </span>
                                     </div>
-                                </div>
-                            }
-                        </div>
-                    }
+                                }
+                            </div>
+                        }
 
-                    <button type="button" class="btn btn-outline-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addActionModal" onclick="setActionType('Contenção')">
-                        <i class="bi bi-plus-circle me-1"></i> Adicionar Ação
-                    </button>
+                        @if (isResponsavelContencao)
+                        {
+                            <button type="button" class="btn btn-outline-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addActionModal" onclick="setActionType('Contenção')">
+                                <i class="bi bi-plus-circle me-1"></i> Adicionar Ação
+                            </button>
 
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-primary me-2">
-                            <i class="bi bi-save me-1"></i> Salvar
-                        </button>
-                        <button type="button" class="btn btn-success" onclick="updateStage('@Model.Id', 'Análise de Causa')">
-                            Avançar para Análise <i class="bi bi-arrow-right ms-1"></i>
-                        </button>
-                    </div>
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="bi bi-save me-1"></i> Salvar
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="updateStage('@Model.Id', 'Análise de Causa')">
+                                    Avançar para Análise <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        }
+                    </fieldset>
                 </form>
             </div>
         </div>
@@ -226,6 +280,13 @@
     <div class="tab-pane fade" id="analise" role="tabpanel">
         <div class="card">
             <div class="card-body">
+                @if (!isResponsavelAnalise)
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-lock-fill me-2"></i> Você não é o responsável por esta etapa. Apenas leitura.
+                    </div>
+                }
+
                 <form asp-action="Edit" method="post">
                     <input type="hidden" asp-for="Id" />
                     <input type="hidden" asp-for="Numero" />
@@ -239,41 +300,37 @@
                     <input type="hidden" asp-for="Status" />
                     <input type="hidden" asp-for="EtapaAtual" />
                     <input type="hidden" asp-for="Progresso" />
+                    
+                    <input type="hidden" asp-for="ResponsavelContencaoId" />
+                    <input type="hidden" asp-for="ResponsavelAnaliseCausaId" />
+                    <input type="hidden" asp-for="ResponsavelAcaoCorretivaId" />
+                    <input type="hidden" asp-for="ResponsavelVerificacaoId" />
 
-                    <p class="text-muted">Identifique a causa raiz do problema utilizando ferramentas como 5 Porquês, Diagrama de Ishikawa, etc.</p>
+                    <fieldset disabled="@(!isResponsavelAnalise ? "disabled" : null)">
+                        <p class="text-muted">Identifique a causa raiz do problema utilizando ferramentas como 5 Porquês, Diagrama de Ishikawa, etc.</p>
 
-                    <div class="mb-3">
-                        <label asp-for="ResponsavelAnaliseId" class="form-label">Responsável pela Análise</label>
-                        <select asp-for="ResponsavelAnaliseId" class="form-select">
-                            <option value="">Selecione o responsável</option>
-                            @if (users != null)
-                            {
-                                foreach (var user in users)
-                                {
-                                    <option value="@user.Id">@user.Nome - @user.Funcao</option>
-                                }
-                            }
-                        </select>
-                    </div>
+                        <div class="mb-3">
+                            <label asp-for="AnaliseCausa" class="form-label">Análise de Causa</label>
+                            <textarea asp-for="AnaliseCausa" class="form-control" rows="6" placeholder="Descreva o processo de análise realizado..."></textarea>
+                        </div>
 
-                    <div class="mb-3">
-                        <label asp-for="AnaliseCausa" class="form-label">Análise de Causa</label>
-                        <textarea asp-for="AnaliseCausa" class="form-control" rows="6" placeholder="Descreva o processo de análise realizado..."></textarea>
-                    </div>
+                        <div class="mb-3">
+                            <label asp-for="CausaRaiz" class="form-label">Causa Raiz Identificada</label>
+                            <textarea asp-for="CausaRaiz" class="form-control" rows="3" placeholder="Qual é a causa raiz do problema?"></textarea>
+                        </div>
 
-                    <div class="mb-3">
-                        <label asp-for="CausaRaiz" class="form-label">Causa Raiz Identificada</label>
-                        <textarea asp-for="CausaRaiz" class="form-control" rows="3" placeholder="Qual é a causa raiz do problema?"></textarea>
-                    </div>
-
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-primary me-2">
-                            <i class="bi bi-save me-1"></i> Salvar
-                        </button>
-                        <button type="button" class="btn btn-success" onclick="updateStage('@Model.Id', 'Ações Corretivas')">
-                            Avançar para Ações Corretivas <i class="bi bi-arrow-right ms-1"></i>
-                        </button>
-                    </div>
+                        @if (isResponsavelAnalise)
+                        {
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="bi bi-save me-1"></i> Salvar
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="updateStage('@Model.Id', 'Ações Corretivas')">
+                                    Avançar para Ações Corretivas <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        }
+                    </fieldset>
                 </form>
             </div>
         </div>
@@ -283,6 +340,13 @@
     <div class="tab-pane fade" id="corretivas" role="tabpanel">
         <div class="card">
             <div class="card-body">
+                @if (!isResponsavelCorretiva)
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-lock-fill me-2"></i> Você não é o responsável por esta etapa. Apenas leitura.
+                    </div>
+                }
+
                 <form asp-action="Edit" method="post">
                     <input type="hidden" asp-for="Id" />
                     <input type="hidden" asp-for="Numero" />
@@ -296,61 +360,57 @@
                     <input type="hidden" asp-for="Status" />
                     <input type="hidden" asp-for="EtapaAtual" />
                     <input type="hidden" asp-for="Progresso" />
+                    
+                    <input type="hidden" asp-for="ResponsavelContencaoId" />
+                    <input type="hidden" asp-for="ResponsavelAnaliseCausaId" />
+                    <input type="hidden" asp-for="ResponsavelAcaoCorretivaId" />
+                    <input type="hidden" asp-for="ResponsavelVerificacaoId" />
 
-                    <p class="text-muted">Defina as ações corretivas para eliminar a causa raiz e prevenir a recorrência.</p>
+                    <fieldset disabled="@(!isResponsavelCorretiva ? "disabled" : null)">
+                        <p class="text-muted">Defina as ações corretivas para eliminar a causa raiz e prevenir a recorrência.</p>
 
-                    <div class="mb-3">
-                        <label asp-for="ResponsavelCorretivasId" class="form-label">Responsável pelas Ações Corretivas</label>
-                        <select asp-for="ResponsavelCorretivasId" class="form-select">
-                            <option value="">Selecione o responsável</option>
-                            @if (users != null)
-                            {
-                                foreach (var user in users)
+                        <h5 class="mb-3">Ações Corretivas</h5>
+
+                        @if (Model.Acoes != null && Model.Acoes.Any(a => a.Tipo == "Corretiva"))
+                        {
+                            <div class="list-group mb-3">
+                                @foreach (var acao in Model.Acoes.Where(a => a.Tipo == "Corretiva"))
                                 {
-                                    <option value="@user.Id">@user.Nome - @user.Funcao</option>
-                                }
-                            }
-                        </select>
-                    </div>
-
-                    <h5 class="mb-3">Ações Corretivas</h5>
-
-                    @if (Model.Acoes != null && Model.Acoes.Any(a => a.Tipo == "Corretiva"))
-                    {
-                        <div class="list-group mb-3">
-                            @foreach (var acao in Model.Acoes.Where(a => a.Tipo == "Corretiva"))
-                            {
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <p class="mb-1"><strong>@acao.Descricao</strong></p>
-                                            <small class="text-muted">
-                                                Responsável: @(acao.Responsavel?.Nome ?? "Não atribuído") | 
-                                                Departamento: @(acao.Departamento ?? "-") | 
-                                                Prazo: @(acao.Prazo?.ToString("dd/MM/yyyy") ?? "-")
-                                            </small>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <p class="mb-1"><strong>@acao.Descricao</strong></p>
+                                                <small class="text-muted">
+                                                    Responsável: @(acao.Responsavel?.Nome ?? "Não atribuído") | 
+                                                    Departamento: @(acao.Departamento ?? "-") | 
+                                                    Prazo: @(acao.Prazo?.ToString("dd/MM/yyyy") ?? "-")
+                                                </small>
+                                            </div>
+                                            <span class="badge bg-@(acao.Status == "Concluída" ? "success" : acao.Status == "Em Andamento" ? "warning" : "secondary")">
+                                                @acao.Status
+                                            </span>
                                         </div>
-                                        <span class="badge bg-@(acao.Status == "Concluída" ? "success" : acao.Status == "Em Andamento" ? "warning" : "secondary")">
-                                            @acao.Status
-                                        </span>
                                     </div>
-                                </div>
-                            }
-                        </div>
-                    }
+                                }
+                            </div>
+                        }
 
-                    <button type="button" class="btn btn-outline-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addActionModal" onclick="setActionType('Corretiva')">
-                        <i class="bi bi-plus-circle me-1"></i> Adicionar Ação Corretiva
-                    </button>
+                        @if (isResponsavelCorretiva)
+                        {
+                            <button type="button" class="btn btn-outline-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addActionModal" onclick="setActionType('Corretiva')">
+                                <i class="bi bi-plus-circle me-1"></i> Adicionar Ação Corretiva
+                            </button>
 
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-primary me-2">
-                            <i class="bi bi-save me-1"></i> Salvar
-                        </button>
-                        <button type="button" class="btn btn-success" onclick="updateStage('@Model.Id', 'Verificação')">
-                            Avançar para Verificação <i class="bi bi-arrow-right ms-1"></i>
-                        </button>
-                    </div>
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="bi bi-save me-1"></i> Salvar
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="updateStage('@Model.Id', 'Verificação')">
+                                    Avançar para Verificação <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        }
+                    </fieldset>
                 </form>
             </div>
         </div>
@@ -360,6 +420,13 @@
     <div class="tab-pane fade" id="verificacao" role="tabpanel">
         <div class="card">
             <div class="card-body">
+                @if (!isResponsavelVerificacao)
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-lock-fill me-2"></i> Você não é o responsável por esta etapa. Apenas leitura.
+                    </div>
+                }
+
                 <form asp-action="Edit" method="post">
                     <input type="hidden" asp-for="Id" />
                     <input type="hidden" asp-for="Numero" />
@@ -372,59 +439,55 @@
                     <input type="hidden" asp-for="CreatedById" />
                     <input type="hidden" asp-for="EtapaAtual" />
                     <input type="hidden" asp-for="Progresso" />
+                    
+                    <input type="hidden" asp-for="ResponsavelContencaoId" />
+                    <input type="hidden" asp-for="ResponsavelAnaliseCausaId" />
+                    <input type="hidden" asp-for="ResponsavelAcaoCorretivaId" />
+                    <input type="hidden" asp-for="ResponsavelVerificacaoId" />
 
-                    <p class="text-muted">Verifique se as ações corretivas foram eficazes e se o problema foi resolvido.</p>
+                    <fieldset disabled="@(!isResponsavelVerificacao ? "disabled" : null)">
+                        <p class="text-muted">Verifique se as ações corretivas foram eficazes e se o problema foi resolvido.</p>
 
-                    <div class="mb-3">
-                        <label asp-for="ResponsavelVerificacaoId" class="form-label">Responsável pela Verificação</label>
-                        <select asp-for="ResponsavelVerificacaoId" class="form-select">
-                            <option value="">Selecione o responsável</option>
-                            @if (users != null)
-                            {
-                                foreach (var user in users)
-                                {
-                                    <option value="@user.Id">@user.Nome - @user.Funcao</option>
-                                }
-                            }
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="ResultadoVerificacao" class="form-label">Resultado da Verificação</label>
-                        <textarea asp-for="ResultadoVerificacao" class="form-control" rows="5" placeholder="Descreva os resultados da verificação..."></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">As ações foram eficazes?</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" asp-for="EficazVerificacao" value="true" id="eficazSim">
-                            <label class="form-check-label" for="eficazSim">
-                                Sim - As ações foram eficazes
-                            </label>
+                        <div class="mb-3">
+                            <label asp-for="ResultadoVerificacao" class="form-label">Resultado da Verificação</label>
+                            <textarea asp-for="ResultadoVerificacao" class="form-control" rows="5" placeholder="Descreva os resultados da verificação..."></textarea>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" asp-for="EficazVerificacao" value="false" id="eficazNao">
-                            <label class="form-check-label" for="eficazNao">
-                                Não - Necessário revisar as ações
-                            </label>
+
+                        <div class="mb-3">
+                            <label class="form-label">As ações foram eficazes?</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" asp-for="EficazVerificacao" value="true" id="eficazSim">
+                                <label class="form-check-label" for="eficazSim">
+                                    Sim - As ações foram eficazes
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" asp-for="EficazVerificacao" value="false" id="eficazNao">
+                                <label class="form-check-label" for="eficazNao">
+                                    Não - Necessário revisar as ações
+                                </label>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Status" class="form-label">Status Final</label>
-                        <select asp-for="Status" class="form-select">
-                            <option value="Aberta">Aberta</option>
-                            <option value="Em Análise">Em Análise</option>
-                            <option value="Em Implantação">Em Implantação</option>
-                            <option value="Encerrada">Encerrada</option>
-                        </select>
-                    </div>
+                        <div class="mb-3">
+                            <label asp-for="Status" class="form-label">Status Final</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="Aberta">Aberta</option>
+                                <option value="Em Análise">Em Análise</option>
+                                <option value="Em Implantação">Em Implantação</option>
+                                <option value="Encerrada">Encerrada</option>
+                            </select>
+                        </div>
 
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle me-1"></i> Finalizar Verificação
-                        </button>
-                    </div>
+                        @if (isResponsavelVerificacao)
+                        {
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-1"></i> Finalizar Verificação
+                                </button>
+                            </div>
+                        }
+                    </fieldset>
                 </form>
             </div>
         </div>

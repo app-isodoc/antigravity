@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Isodoc.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,7 @@ builder.Services.AddIdentity<Isodoc.Web.Models.ApplicationUser, Microsoft.AspNet
 builder.Services.Configure<Isodoc.Web.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<Isodoc.Web.Services.IEmailService, Isodoc.Web.Services.EmailService>();
-
+builder.Services.AddScoped<Isodoc.Web.Services.INotificationService, Isodoc.Web.Services.NotificationService>();
 builder.Services.AddScoped<Isodoc.Web.Services.ICurrentTenantService, Isodoc.Web.Services.CurrentTenantService>();
 
 var app = builder.Build();
@@ -128,10 +129,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "❌ ❌ ❌ ERRO CRÍTICO NO SETUP DO BANCO DE DADOS!");
     }
 }
-
-
-
-
 
 if (!app.Environment.IsDevelopment())
 {

@@ -249,7 +249,30 @@ public class NonConformitiesController : Controller
         return View(model);
     }
 
+    // GET: NonConformities/Details/5
+    public async Task<IActionResult> Details(Guid id)
+    {
+        var nonConformity = await _context.NonConformities
+            .Include(n => n.CreatedBy)
+            .Include(n => n.ResponsavelContencao)
+            .Include(n => n.ResponsavelAnaliseCausa)
+            .Include(n => n.ResponsavelAcaoCorretiva)
+            .Include(n => n.ResponsavelVerificacao)
+            .Include(n => n.Evidencias)
+                .ThenInclude(e => e.UploadedBy)
+            .Include(n => n.Acoes)
+                .ThenInclude(a => a.Responsavel)
+            .Include(n => n.Acoes)
+                .ThenInclude(a => a.UsuarioProvidencias)
+            .FirstOrDefaultAsync(n => n.Id == id);
 
+        if (nonConformity == null)
+        {
+            return NotFound();
+        }
+
+        return View(nonConformity);
+    }
 
     // GET: NonConformities/Edit/5
     public async Task<IActionResult> Edit(Guid id)
@@ -361,8 +384,67 @@ public class NonConformitiesController : Controller
         _context.NonConformityActions.Add(action);
         await _context.SaveChangesAsync();
 
-        TempData["Success"] = "Ação adicionada com sucesso!";
+        // Notificar responsável pela ação
+        if (!string.IsNullOrEmpty(responsavelId))
+        {
+            var user = await _userManager.FindByIdAsync(responsavelId);
+            if (user != null)
+            {
+                var nc = await _context.NonConformities.FindAsync(nonConformityId);
+                string subject = $"[ISODOC] Nova Ação Atribuída - {nc?.Numero}";
+                string body = $@"
+                    <h2>Nova Ação de {tipo}</h2>
+                    <p>Olá <strong>{user.Nome}</strong>,</p>
+                    <p>Você foi designado como responsável por uma ação de <strong>{tipo}</strong> na Não Conformidade <strong>{nc?.Numero}</strong>.</p>
+                    <p><strong>Descrição da Ação:</strong> {descricao}</p>
+                    <p><strong>Prazo:</strong> {prazo?.ToString("dd/MM/yyyy") ?? "Não definido"}</p>
+                    <p>Por favor, acesse o sistema para registrar as providências.</p>
+                    <br>
+                    <p>Atenciosamente,<br>Equipe ISODOC</p>";
+
+                try 
+                {
+                    await _emailService.SendEmailAsync(user.Email, subject, body, user.Nome);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro ao enviar email: {ex.Message}");
+                }
+
+                await _notificationService.CreateNotificationAsync(user.Id, $"Nova Ação: {tipo}", $"NC {nc?.Numero}: {descricao}", Url.Action("Edit", "NonConformities", new { id = nonConformityId }));
+            }
+        }
+
+        TempData["Success"] = "Ação adicionada com sucesso! O responsável foi notificado.";
         return RedirectToAction(nameof(Edit), new { id = nonConformityId });
+    }
+
+    // POST: NonConformities/RegistrarProvidencias
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegistrarProvidencias(Guid actionId, string providencias)
+    {
+        var action = await _context.NonConformityActions
+            .Include(a => a.NonConformity)
+            .FirstOrDefaultAsync(a => a.Id == actionId);
+
+        if (action == null)
+        {
+            return NotFound();
+        }
+
+        var currentUser = await _userManager.GetUserAsync(User);
+        
+        action.Providencias = providencias;
+        action.DataProvidencias = DateTime.UtcNow;
+        action.UsuarioProvidenciasId = currentUser.Id;
+        action.Status = "Concluída"; 
+        action.DataConclusao = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] = "Providências registradas com sucesso!";
+        return RedirectToAction(nameof(Edit), new { id = action.NonConformityId });
     }
 
     // POST: NonConformities/UpdateStage

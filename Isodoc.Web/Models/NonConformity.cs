@@ -154,4 +154,12 @@ public class NonConformityAction
     public DateTime? DataConclusao { get; set; }
 
     public string? Observacoes { get; set; }
+
+    // Providências (Measures Taken)
+    public string? Providencias { get; set; }
+    public DateTime? DataProvidencias { get; set; }
+    
+    public string? UsuarioProvidenciasId { get; set; }
+    [ForeignKey("UsuarioProvidenciasId")]
+    public virtual ApplicationUser? UsuarioProvidencias { get; set; }
 }

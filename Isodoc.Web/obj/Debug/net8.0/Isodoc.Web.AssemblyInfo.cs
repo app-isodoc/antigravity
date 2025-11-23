@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Isodoc.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0c4d373256715b0c7f28a2b01cc84afb0fba34c7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+db9e5342a14f58d7a1b302c970f3f15df1dbf439")]
 [assembly: System.Reflection.AssemblyProductAttribute("Isodoc.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Isodoc.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

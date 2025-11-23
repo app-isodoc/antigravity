@@ -94,6 +94,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm9uQ29uZm9ybWl0aWVzXENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[c:/Isodoc_Asp.Net/Isodoc.Web/Views/NonConformities/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm9uQ29uZm9ybWl0aWVzXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [c:/Isodoc_Asp.Net/Isodoc.Web/Views/NonConformities/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm9uQ29uZm9ybWl0aWVzXEVkaXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 

@@ -1,0 +1,427 @@
+@model Isodoc.Web.Models.NonConformity
+
+@{
+    ViewData["Title"] = $"Detalhes da Não Conformidade: {Model.Numero}";
+}
+
+<style>
+    .details-section {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        color: #2563eb;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .info-label {
+        font-size: 12px;
+        color: #6b7280;
+        font-weight: 500;
+    }
+    
+    .info-value {
+        font-size: 14px;
+        color: #111827;
+        font-weight: 500;
+    }
+    
+    .description-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 12px;
+        margin-top: 8px;
+    }
+    
+    .evidence-item, .action-item {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .evidence-link {
+        color: #2563eb;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+    }
+    
+    .evidence-link:hover {
+        text-decoration: underline;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .status-encerrada { background: #d1fae5; color: #065f46; }
+    .status-aberta { background: #fee2e2; color: #991b1b; }
+    .status-pendente { background: #fef3c7; color: #92400e; }
+    .status-concluída { background: #d1fae5; color: #065f46; }
+    .status-em-andamento { background: #dbeafe; color: #1e40af; }
+    
+    .providencias-box {
+        background: #ecfdf5;
+        border-left: 3px solid #10b981;
+        padding: 12px;
+        margin-top: 8px;
+        border-radius: 4px;
+    }
+    
+    .alert-box {
+        background: #fef2f2;
+        border-left: 3px solid #ef4444;
+        padding: 12px;
+        margin-top: 8px;
+        border-radius: 4px;
+    }
+    
+    @@media print {
+        .no-print { display: none !important; }
+        .details-section { page-break-inside: avoid; }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <h4 class="mb-0">Detalhes da Não Conformidade: @Model.Numero</h4>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+                <i class="bi bi-printer me-1"></i> Imprimir
+            </button>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="bi bi-pencil me-1"></i> Editar
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Identificação da Não Conformidade -->
+    <div class="details-section">
+        <div class="section-title">
+            <i class="bi bi-clipboard-check"></i>
+            Identificação da Não Conformidade
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Número</span>
+                <span class="info-value">@Model.Numero</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Título</span>
+                <span class="info-value">@Model.Titulo</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Status</span>
+                <span class="status-badge status-@Model.Status.ToLower().Replace(" ", "-")">@Model.Status</span>
+            </div>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-calendar me-1"></i> Data do Registro</span>
+                <span class="info-value">@Model.DataRegistro.ToString("dd/MM/yyyy")</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-person me-1"></i> Criado por</span>
+                <span class="info-value">@(Model.CreatedBy?.Email ?? "-")</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-clock me-1"></i> Prazo Final</span>
+                <span class="info-value">@(Model.PrazoConclusao?.ToString("dd/MM/yyyy") ?? "-")</span>
+            </div>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Departamento</span>
+                <span class="info-value">@(Model.Departamento ?? "-")</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Tipo</span>
+                <span class="info-value">@Model.Tipo</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-exclamation-triangle me-1"></i> Severidade</span>
+                <span class="info-value">@Model.Severidade</span>
+            </div>
+        </div>
+        
+        <div class="info-item mt-3">
+            <span class="info-label">Descrição Detalhada</span>
+            <div class="description-box">
+                @Model.Descricao
+            </div>
+        </div>
+    </div>
+
+    <!-- Evidências Anexadas -->
+    @if (Model.Evidencias != null && Model.Evidencias.Any())
+    {
+        <div class="details-section">
+            <div class="section-title">
+                <i class="bi bi-paperclip"></i>
+                Evidências Anexadas
+            </div>
+            
+            @foreach (var evidencia in Model.Evidencias)
+            {
+                <div class="evidence-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold mb-1">@evidencia.Descricao</div>
+                            <small class="text-muted">
+                                @evidencia.DataUpload.ToString("dd/MM/yyyy HH:mm") - @(evidencia.UploadedBy?.Nome ?? "Sistema")
+                            </small>
+                            @if (!string.IsNullOrEmpty(evidencia.ArquivoUrl))
+                            {
+                                <div class="mt-2">
+                                    <a href="@evidencia.ArquivoUrl" target="_blank" class="evidence-link">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        @evidencia.ArquivoNome
+                                        <i class="bi bi-eye ms-1"></i>
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Ações de Contenção -->
+    @if (Model.Acoes != null && Model.Acoes.Any(a => a.Tipo == "Contenção"))
+    {
+        <div class="details-section">
+            <div class="section-title">
+                <i class="bi bi-shield-check"></i>
+                Ações de Contenção
+            </div>
+            
+            <div class="info-item mb-3">
+                <span class="info-label">Responsável Geral</span>
+                <span class="info-value">@(Model.ResponsavelContencao?.Email ?? "-")</span>
+            </div>
+            
+            @foreach (var acao in Model.Acoes.Where(a => a.Tipo == "Contenção"))
+            {
+                <div class="action-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="fw-semibold">@acao.Descricao</div>
+                        <span class="status-badge status-@acao.Status.ToLower().Replace(" ", "-")">@acao.Status</span>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Responsável</span>
+                            <span class="info-value">@(acao.Responsavel?.Email ?? "-")</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Prazo</span>
+                            <span class="info-value">@(acao.Prazo?.ToString("dd/MM/yyyy") ?? "-")</span>
+                        </div>
+                    </div>
+                    
+                    @if (acao.Status == "Concluída" && !string.IsNullOrEmpty(acao.Providencias))
+                    {
+                        <div class="providencias-box mt-2">
+                            <div class="fw-semibold mb-1">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Concluída em @(acao.DataConclusao?.ToString("dd/MM/yyyy"))
+                            </div>
+                            <div class="fw-semibold text-success mb-1">Providências: @acao.Providencias</div>
+                            <small class="text-muted">
+                                Registrado por: @(acao.UsuarioProvidencias?.Nome ?? "Usuário") em @(acao.DataProvidencias?.ToString("dd/MM/yyyy HH:mm"))
+                            </small>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Análise de Causa -->
+    @if (!string.IsNullOrEmpty(Model.AnaliseCausa) || !string.IsNullOrEmpty(Model.CausaRaiz))
+    {
+        <div class="details-section">
+            <div class="section-title">
+                <i class="bi bi-search"></i>
+                Análise de Causa
+            </div>
+            
+            <div class="info-item mb-3">
+                <span class="info-label">Responsável pela Análise</span>
+                <span class="info-value">@(Model.ResponsavelAnaliseCausa?.Email ?? "-")</span>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.MetodologiaAnalise))
+            {
+                <div class="info-item mb-3">
+                    <span class="info-label">Metodologia</span>
+                    <span class="info-value">@Model.MetodologiaAnalise</span>
+                </div>
+            }
+            
+            @if (!string.IsNullOrEmpty(Model.CausaRaiz))
+            {
+                <div class="info-item mb-3">
+                    <span class="info-label">Causa Raiz</span>
+                    <div class="description-box">
+                        @Model.CausaRaiz
+                    </div>
+                </div>
+            }
+            
+            @if (!string.IsNullOrEmpty(Model.AnaliseCausa))
+            {
+                <div class="info-item">
+                    <span class="info-label">Detalhes da Análise</span>
+                    <div class="description-box">
+                        @Model.AnaliseCausa
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Ações Corretivas -->
+    @if (Model.Acoes != null && Model.Acoes.Any(a => a.Tipo == "Corretiva"))
+    {
+        <div class="details-section">
+            <div class="section-title">
+                <i class="bi bi-tools"></i>
+                Ações Corretivas
+            </div>
+            
+            <div class="info-item mb-3">
+                <span class="info-label">Responsável Geral</span>
+                <span class="info-value">@(Model.ResponsavelAcaoCorretiva?.Email ?? "-")</span>
+            </div>
+            
+            @foreach (var acao in Model.Acoes.Where(a => a.Tipo == "Corretiva"))
+            {
+                <div class="action-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="fw-semibold">@acao.Descricao</div>
+                        <span class="status-badge status-@acao.Status.ToLower().Replace(" ", "-")">@acao.Status</span>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Responsável</span>
+                            <span class="info-value">@(acao.Responsavel?.Email ?? "-")</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Prazo</span>
+                            <span class="info-value">@(acao.Prazo?.ToString("dd/MM/yyyy") ?? "-")</span>
+                        </div>
+                    </div>
+                    
+                    @if (acao.Status == "Concluída" && !string.IsNullOrEmpty(acao.Providencias))
+                    {
+                        <div class="providencias-box mt-2">
+                            <div class="fw-semibold mb-1">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Concluída em @(acao.DataConclusao?.ToString("dd/MM/yyyy"))
+                            </div>
+                            <div class="fw-semibold text-success mb-1">Providências: @acao.Providencias</div>
+                            <small class="text-muted">
+                                Registrado por: @(acao.UsuarioProvidencias?.Nome ?? "Usuário") em @(acao.DataProvidencias?.ToString("dd/MM/yyyy HH:mm"))
+                            </small>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Verificação de Eficácia -->
+    @if (!string.IsNullOrEmpty(Model.ResultadoVerificacao) || Model.EficazVerificacao.HasValue)
+    {
+        <div class="details-section">
+            <div class="section-title">
+                <i class="bi bi-check2-circle"></i>
+                Verificação de Eficácia
+            </div>
+            
+            <div class="info-item mb-3">
+                <span class="info-label">Responsável pela Verificação</span>
+                <span class="info-value">@(Model.ResponsavelVerificacao?.Email ?? "-")</span>
+            </div>
+            
+            <div class="info-grid mb-3">
+                <div class="info-item">
+                    <span class="info-label">Status</span>
+                    <span class="info-value">@(Model.EficazVerificacao == true ? "Eficaz" : Model.EficazVerificacao == false ? "Não Eficaz" : "-")</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Data da Verificação</span>
+                    <span class="info-value">@(Model.DataVerificacao?.ToString("dd/MM/yyyy") ?? "-")</span>
+                </div>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.ResultadoVerificacao))
+            {
+                <div class="info-item">
+                    <span class="info-label">Detalhes</span>
+                    <div class="description-box">
+                        @Model.ResultadoVerificacao
+                    </div>
+                </div>
+            }
+            
+            @if (Model.EficazVerificacao == false)
+            {
+                <div class="alert-box mt-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Verificação Realizada Após o Prazo</strong>
+                    <div class="mt-1">
+                        <small>Motivo do atraso: @(Model.ResultadoVerificacao ?? "Não informado")</small>
+                    </div>
+                    @if (Model.DataVerificacao.HasValue && Model.PrazoConclusao.HasValue)
+                    {
+                        <div class="mt-1">
+                            <small>Prazo original: @Model.PrazoConclusao.Value.ToString("dd/MM/yyyy") | Verificação realizada: @Model.DataVerificacao.Value.ToString("dd/MM/yyyy")</small>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

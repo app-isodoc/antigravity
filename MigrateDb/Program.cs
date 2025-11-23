@@ -29,7 +29,12 @@ var commands = new[]
         IsRead INTEGER NOT NULL DEFAULT 0,
         CreatedAt TEXT NOT NULL,
         FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE
-    );"
+    );",
+
+    // Novas colunas para Providências em Ações
+    "ALTER TABLE NonConformityActions ADD COLUMN Providencias TEXT;",
+    "ALTER TABLE NonConformityActions ADD COLUMN DataProvidencias TEXT;",
+    "ALTER TABLE NonConformityActions ADD COLUMN UsuarioProvidenciasId TEXT;"
 };
 
 foreach (var cmdText in commands)

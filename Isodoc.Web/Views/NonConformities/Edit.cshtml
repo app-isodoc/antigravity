@@ -205,73 +205,100 @@
                     </div>
                 }
                 
-                <form asp-action="Edit" method="post">
-                    <!-- Campos ocultos necessários para o Model Binding não quebrar -->
-                    <input type="hidden" asp-for="Id" />
-                    <input type="hidden" asp-for="Numero" />
-                    <input type="hidden" asp-for="Titulo" />
-                    <input type="hidden" asp-for="Descricao" />
-                    <input type="hidden" asp-for="Tipo" />
-                    <input type="hidden" asp-for="Severidade" />
-                    <input type="hidden" asp-for="DataRegistro" />
-                    <input type="hidden" asp-for="ClientId" />
-                    <input type="hidden" asp-for="CreatedById" />
-                    <input type="hidden" asp-for="Status" />
-                    <input type="hidden" asp-for="EtapaAtual" />
-                    <input type="hidden" asp-for="Progresso" />
-                    
-                    <!-- Preservar responsáveis -->
-                    <input type="hidden" asp-for="ResponsavelContencaoId" />
-                    <input type="hidden" asp-for="ResponsavelAnaliseCausaId" />
-                    <input type="hidden" asp-for="ResponsavelAcaoCorretivaId" />
-                    <input type="hidden" asp-for="ResponsavelVerificacaoId" />
+                @if (isResponsavelContencao)
+                {
+                    <form asp-action="Edit" method="post">
+                        <!-- Campos ocultos -->
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="Numero" />
+                        <input type="hidden" asp-for="Titulo" />
+                        <input type="hidden" asp-for="Descricao" />
+                        <input type="hidden" asp-for="Tipo" />
+                        <input type="hidden" asp-for="Severidade" />
+                        <input type="hidden" asp-for="DataRegistro" />
+                        <input type="hidden" asp-for="ClientId" />
+                        <input type="hidden" asp-for="CreatedById" />
+                        <input type="hidden" asp-for="Status" />
+                        <input type="hidden" asp-for="EtapaAtual" />
+                        <input type="hidden" asp-for="Progresso" />
+                        
+                        <input type="hidden" asp-for="ResponsavelContencaoId" />
+                        <input type="hidden" asp-for="ResponsavelAnaliseCausaId" />
+                        <input type="hidden" asp-for="ResponsavelAcaoCorretivaId" />
+                        <input type="hidden" asp-for="ResponsavelVerificacaoId" />
 
-                    <fieldset disabled="@(!isResponsavelContencao ? "disabled" : null)">
                         <p class="text-muted">Registre as ações imediatas para conter o problema e evitar que ele se agrave ou afete outros processos ou clientes.</p>
+                        
+                        <!-- Botões de Ação Principal -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Ações de Contenção</h5>
+                            <div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addActionModal" onclick="setActionType('Contenção')">
+                                    <i class="bi bi-plus-circle me-1"></i> Adicionar Ação
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                }
+                else
+                {
+                    <p class="text-muted">Registre as ações imediatas para conter o problema e evitar que ele se agrave ou afete outros processos ou clientes.</p>
+                    <h5 class="mb-3">Ações de Contenção</h5>
+                }
 
-                        <h5 class="mb-3">Ações de Contenção</h5>
-
-                        @if (Model.Acoes != null && Model.Acoes.Any(a => a.Tipo == "Contenção"))
+                @if (Model.Acoes != null && Model.Acoes.Any(a => a.Tipo == "Contenção"))
+                {
+                    <div class="list-group mb-3">
+                        @foreach (var acao in Model.Acoes.Where(a => a.Tipo == "Contenção"))
                         {
-                            <div class="list-group mb-3">
-                                @foreach (var acao in Model.Acoes.Where(a => a.Tipo == "Contenção"))
-                                {
-                                    <div class="list-group-item">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
-                                                <p class="mb-1"><strong>@acao.Descricao</strong></p>
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <p class="mb-1"><strong>@acao.Descricao</strong></p>
+                                        <small class="text-muted">
+                                            Responsável: @(acao.Responsavel?.Nome ?? "Não atribuído") | 
+                                            Departamento: @(acao.Departamento ?? "-") | 
+                                            Prazo: @(acao.Prazo?.ToString("dd/MM/yyyy") ?? "-")
+                                        </small>
+
+                                        @if (!string.IsNullOrEmpty(acao.Providencias))
+                                        {
+                                            <div class="mt-2 p-2 bg-light border rounded">
+                                                <strong>Providências Adotadas:</strong>
+                                                <p class="mb-1">@acao.Providencias</p>
                                                 <small class="text-muted">
-                                                    Responsável: @(acao.Responsavel?.Nome ?? "Não atribuído") | 
-                                                    Departamento: @(acao.Departamento ?? "-") | 
-                                                    Prazo: @(acao.Prazo?.ToString("dd/MM/yyyy") ?? "-")
+                                                    Registrado por: @(acao.UsuarioProvidencias?.Nome ?? "Usuário") em @(acao.DataProvidencias?.ToString("dd/MM/yyyy HH:mm"))
                                                 </small>
                                             </div>
-                                            <span class="badge bg-@(acao.Status == "Concluída" ? "success" : acao.Status == "Em Andamento" ? "warning" : "secondary")">
-                                                @acao.Status
-                                            </span>
-                                        </div>
+                                        }
+
+                                        @if (currentUserId == acao.ResponsavelId && string.IsNullOrEmpty(acao.Providencias)) 
+                                        {
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#registrarProvidenciasModal" onclick="setProvidenciaActionId('@acao.Id', '@acao.Descricao')">
+                                                    <i class="bi bi-pencil-square me-1"></i> PROVIDÊNCIAS
+                                                </button>
+                                            </div>
+                                        }
                                     </div>
-                                }
+                                    <span class="badge bg-@(acao.Status == "Concluída" ? "success" : acao.Status == "Em Andamento" ? "warning" : "secondary")">
+                                        @acao.Status
+                                    </span>
+                                </div>
                             </div>
                         }
+                    </div>
+                }
 
-                        @if (isResponsavelContencao)
-                        {
-                            <button type="button" class="btn btn-outline-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addActionModal" onclick="setActionType('Contenção')">
-                                <i class="bi bi-plus-circle me-1"></i> Adicionar Ação
-                            </button>
-
-                            <div class="d-flex justify-content-end mt-4">
-                                <button type="submit" class="btn btn-primary me-2">
-                                    <i class="bi bi-save me-1"></i> Salvar
-                                </button>
-                                <button type="button" class="btn btn-success" onclick="updateStage('@Model.Id', 'Análise de Causa')">
-                                    Avançar para Análise <i class="bi bi-arrow-right ms-1"></i>
-                                </button>
-                            </div>
-                        }
-                    </fieldset>
-                </form>
+                @if (isResponsavelContencao)
+                {
+                    <div class="d-flex justify-content-end mt-4">
+                        <!-- Form apenas para o botão de avançar/salvar se necessário, mas o salvar principal já foi -->
+                         <button type="button" class="btn btn-success" onclick="updateStage('@Model.Id', 'Análise de Causa')">
+                            Avançar para Análise <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -370,6 +397,7 @@
                         <p class="text-muted">Defina as ações corretivas para eliminar a causa raiz e prevenir a recorrência.</p>
 
                         <h5 class="mb-3">Ações Corretivas</h5>
+                    </fieldset>
 
                         @if (Model.Acoes != null && Model.Acoes.Any(a => a.Tipo == "Corretiva"))
                         {
@@ -385,6 +413,26 @@
                                                     Departamento: @(acao.Departamento ?? "-") | 
                                                     Prazo: @(acao.Prazo?.ToString("dd/MM/yyyy") ?? "-")
                                                 </small>
+
+                                                @if (!string.IsNullOrEmpty(acao.Providencias))
+                                                {
+                                                    <div class="mt-2 p-2 bg-light border rounded">
+                                                        <strong>Providências Adotadas:</strong>
+                                                        <p class="mb-1">@acao.Providencias</p>
+                                                        <small class="text-muted">
+                                                            Registrado por: @(acao.UsuarioProvidencias?.Nome ?? "Usuário") em @(acao.DataProvidencias?.ToString("dd/MM/yyyy HH:mm"))
+                                                        </small>
+                                                    </div>
+                                                }
+
+                                                @if (currentUserId == acao.ResponsavelId && string.IsNullOrEmpty(acao.Providencias)) 
+                                                {
+                                                    <div class="mt-2">
+                                                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#registrarProvidenciasModal" onclick="setProvidenciaActionId('@acao.Id', '@acao.Descricao')">
+                                                            <i class="bi bi-pencil-square me-1"></i> PROVIDÊNCIAS
+                                                        </button>
+                                                    </div>
+                                                }
                                             </div>
                                             <span class="badge bg-@(acao.Status == "Concluída" ? "success" : acao.Status == "Em Andamento" ? "warning" : "secondary")">
                                                 @acao.Status
@@ -395,6 +443,7 @@
                             </div>
                         }
 
+                    <fieldset disabled="@(!isResponsavelCorretiva ? "disabled" : null)">
                         @if (isResponsavelCorretiva)
                         {
                             <button type="button" class="btn btn-outline-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addActionModal" onclick="setActionType('Corretiva')">
@@ -568,8 +617,39 @@
     </div>
 </div>
 
+<!-- Modal: Registrar Providências -->
+<div class="modal fade" id="registrarProvidenciasModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="RegistrarProvidencias" method="post">
+                <input type="hidden" name="actionId" id="providenciaActionId" />
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Providências</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted" id="providenciaActionDesc"></p>
+                    <div class="mb-3">
+                        <label class="form-label">Descreva as providências adotadas:</label>
+                        <textarea name="providencias" class="form-control" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        function setProvidenciaActionId(id, descricao) {
+            document.getElementById('providenciaActionId').value = id;
+            document.getElementById('providenciaActionDesc').innerText = 'Ação: ' + descricao;
+        }
+
         function setActionType(tipo) {
             document.getElementById('actionType').value = tipo;
         }
